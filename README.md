@@ -50,7 +50,7 @@ on: [push, pull_request]
 
 jobs:
   ci:
-    uses: catalyst/catalyst-moodle-workflows/.github/workflows/ci.yml@main
+    uses: Wunderbyte-GmbH/catalyst-moodle-workflows/.github/workflows/ci.yml@main
     # Required if you plan to publish (uncomment the below)
     # secrets:
       # moodle_org_token: ${{ secrets.MOODLE_ORG_TOKEN }}
@@ -99,7 +99,7 @@ If you'd require to run your workflow against specific versions of a plugin you 
 ```yaml
 jobs:
   moodle41:
-    uses: catalyst/catalyst-moodle-workflows/.github/workflows/ci.yml@main
+    uses: Wunderbyte-GmbH/catalyst-moodle-workflows/.github/workflows/ci.yml@main
     with:
       disable_phpunit: true
       moodle_branches: MOODLE_401_STABLE
@@ -107,7 +107,7 @@ jobs:
         moodle-plugin-ci add-plugin danmarsden/moodle-mod_attendance --branch MOODLE_401_STABLE
 
   moodle42:
-    uses: catalyst/catalyst-moodle-workflows/.github/workflows/ci.yml@main
+    uses: Wunderbyte-GmbH/catalyst-moodle-workflows/.github/workflows/ci.yml@main
     with:
       disable_phpunit: true
       moodle_branches: MOODLE_402_STABLE
