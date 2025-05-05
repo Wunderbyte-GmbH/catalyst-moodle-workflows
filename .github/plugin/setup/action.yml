@@ -8,6 +8,9 @@ inputs:
     description: 'List of additional php packages to install'
   extra_plugin_runners:
     description: 'Command to install dependencies'
+  workarounds:
+    description: 'Custom workaround commands to run'
+    required: false
   disable_behat:
     description: 'Option to disable behat tests'
   disable_mustache:
@@ -111,6 +114,17 @@ runs:
         git config --global user.email "test@test.com"
         git config --global user.name "Test"
         ((test -f plugin/patch/${{ matrix.moodle-branch }}.diff && cd moodle && git am --whitespace=nowarn < ../plugin/patch/${{ matrix.moodle-branch }}.diff) || echo No patch found;)
+      shell: bash
+
+    - name: Run custom workarounds
+      if: ${{ inputs.workarounds }}
+      run: |
+        # Run custom workarounds
+        echo "::group::Running custom workarounds"
+
+        ${{ inputs.workarounds }}
+
+        echo "::endgroup::"
       shell: bash
 
     - name: Run phplint

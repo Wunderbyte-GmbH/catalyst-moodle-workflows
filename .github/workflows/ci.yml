@@ -16,6 +16,10 @@ on:
         type: string
       extra_plugin_runners:
         type: string
+      workarounds:
+        type: string
+        description: 'Custom workaround commands to run before the main CI process'
+        required: false
       disable_behat:
         type: boolean
       disable_mustache:
@@ -222,6 +226,7 @@ jobs:
           codechecker_max_warnings: ${{ inputs.codechecker_max_warnings }}
           extra_php_extensions: ${{ inputs.extra_php_extensions }}
           extra_plugin_runners: ${{ inputs.extra_plugin_runners }}
+          workarounds: ${{ inputs.workarounds }}
           disable_behat:    ${{ inputs.disable_behat }}
           disable_grunt:    ${{ inputs.disable_grunt }}
           disable_mustache: ${{ inputs.disable_mustache }}
