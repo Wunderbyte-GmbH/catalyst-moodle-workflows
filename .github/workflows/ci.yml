@@ -119,7 +119,7 @@ jobs:
             )
           ) }}
 
-          echo "::set-output name=publishable::$publishable"
+          echo "publishable=$publishable" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v4
       - name: Check out CI code
         uses: actions/checkout@v4
@@ -253,7 +253,7 @@ jobs:
         env:
           SECRET_TO_CHECK: '${{ secrets.moodle_org_token }}'
         if: ${{ env.SECRET_TO_CHECK != '' }}
-        run: echo "::set-output name=has-secrets::true"
+        run: echo "has-secrets=true" >> $GITHUB_OUTPUT
 
       - name: Check out CI code
         uses: actions/checkout@v4

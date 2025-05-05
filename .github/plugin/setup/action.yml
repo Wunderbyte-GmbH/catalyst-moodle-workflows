@@ -56,7 +56,7 @@ runs:
       id: install-composer1
       if: ${{ matrix.moodle-branch == 'MOODLE_32_STABLE' || matrix.moodle-branch == 'MOODLE_33_STABLE' }}
       run: |
-        echo "::set-output name=COMPOSER_VERSION::--1"
+        echo "COMPOSER_VERSION=--1" >> $GITHUB_OUTPUT
       shell: bash
 
     - name: Update Composer
