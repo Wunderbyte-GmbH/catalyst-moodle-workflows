@@ -173,3 +173,64 @@ To fix this, you'll need to rebundle the relevant files, on the <ins>highest sup
 __NOTE:__ This may involve having a clean copy of Moodle and installing the plugin code to run the necessary commands to rebuild the _stale_ files.
 
 Grunt docs: https://docs.moodle.org/dev/Grunt#Running_grunt
+
+## Using the Labeled Issue Workflow in Your Moodle Plugin
+
+This feature allows you to automatically create tasks in ERPNext when issues in your GitHub repository are labeled. Here's how to set it up:
+
+### 🛠️ Setup Instructions
+
+### Add the Workflow File
+
+Create a new file in your Moodle plugin repository at: .github/workflows/erpnext.yml
+
+```yaml
+name: Create ERPNext Task from Labeled Issue
+
+on:
+  issues:
+    types:
+      - labeled
+
+jobs:
+  call-labeled-issue-workflow:
+    uses: Wunderbyte-GmbH/catalyst-moodle-workflows/.github/workflows/labeled_issue.yml@main
+    secrets:
+      webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
+```
+
+### Configure the Secret
+
+In your Moodle plugin's GitHub repository:
+
+1. Go to **Settings > Secrets and variables > Actions**
+2. Click **New repository secret**
+3. Set the name to `WEBHOOK_TOKEN`
+4. Set the value to your ERPNext API token
+5. Click **Add secret**
+
+---
+
+### How It Works
+
+When someone adds a label to an issue in your repository:
+
+- The workflow triggers automatically
+- It creates a new task in **ERPNext** with the following details:
+
+  - **Subject**: `GH#[issue-number] - [issue-title]`
+  - **Project**: Set to the label name
+  - **Status**: `Open`
+  - **Description**: Link to the GitHub issue + issue description
+
+---
+
+### ✅ Testing
+
+To test the workflow:
+
+1. Create a new issue in your repository
+2. Add any label to it
+3. Check **ERPNext** for the newly created task
+
+
