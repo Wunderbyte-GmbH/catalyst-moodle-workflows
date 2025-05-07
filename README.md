@@ -233,4 +233,43 @@ To test the workflow:
 2. Add any label to it
 3. Check **ERPNext** for the newly created task
 
+## Tag-based Release Workflow
 
+If you prefer to trigger releases via git tags instead of version.php changes, you can use our tag-based release workflow:
+
+1. Create a file in your repository at `.github/workflows/moodle-release.yml`
+2. Add the following content:
+
+```yaml
+name: Release to Moodle Plugins Directory
+
+on:
+  push:
+    tags:
+      - v*-stable
+
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to be released'
+        required: true
+
+jobs:
+  release:
+    uses: Wunderbyte-GmbH/catalyst-moodle-workflows/.github/workflows/tag-release.yml@main
+    with:
+      plugin_name: YOUR_PLUGIN_NAME_HERE  # Change this to your plugin's frankenstyle name (e.g., local_shopping_cart)
+    secrets:
+      moodle_org_token: ${{ secrets.MOODLE_ORG_TOKEN }}
+```
+3. Replace YOUR_PLUGIN_NAME_HERE with your plugin's frankenstyle name (e.g., local_shopping_cart)
+4. Set up the MOODLE_ORG_TOKEN secret in your repository settings
+5. Make sure to set disable_release: true when using the CI workflow to avoid duplicate releases
+
+### Triggering a release
+You can release your plugin in one of two ways:
+
+- Push a tag matching the pattern `v*-stable` (e.g., v3.2-stable)
+- Manually trigger the workflow with a specific tag name
+
+And when using the CI workflow, remember to set `disable_release: true` to prevent duplicate releases

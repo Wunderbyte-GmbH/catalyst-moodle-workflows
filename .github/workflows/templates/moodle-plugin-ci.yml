@@ -1,0 +1,62 @@
+name: Moodle Plugin CI
+
+on:
+  push:
+    branches:
+      - main
+      - MOODLE_*_STABLE
+  pull_request:
+
+jobs:
+  ci:
+    uses: Wunderbyte-GmbH/catalyst-moodle-workflows/.github/workflows/ci.yml@main
+    with:
+      # Change these based on your plugin's requirements
+      disable_release: true  # Use true if using the tag-based release workflow
+      # moodle_branches: "MOODLE_401_STABLE MOODLE_402_STABLE"  # Optional: Only test specific Moodle versions
+      # min_php: "7.4"  # Optional: Set minimum PHP version
+
+      # Command to install more dependencies
+      # extra_plugin_runners: |
+      #   moodle-plugin-ci add-plugin --branch main Wunderbyte-GmbH/moodle-local_wunderbyte_table
+      #   moodle-plugin-ci add-plugin --branch master branchup/moodle-filter_shortcodes
+      #   moodle-plugin-ci add-plugin --branch main Wunderbyte-GmbH/moodle-tool_mocktesttime
+
+      # If you need to disable specific tests
+      # disable_phpcpd: false
+      # disable_mustache: false
+      # disable_phpunit: false
+      # disable_grunt: false
+      # disable_phpdoc: false
+      # disable_phpcs: false
+      # disable_phplint: false
+      # disable_ci_validate: false
+
+      # For strict code quality checks
+      # codechecker_max_warnings: 0
+
+      # If you need to enable PHPMD
+      # enable_phpmd: true
+
+      # If you need to ignore specific paths (third-party libraries are ignored by default)
+      # ignore_paths: "vue3,moodle/tests/fixtures,moodle/Sniffs,moodle/vue3,OpenTBS,TinyButStrong"
+
+      # Override to exclude stale AMD file check (similar to your current workaround)
+      # This might not be needed with the reusable workflow as it might handle this already
+
+      # Set additional environment variables or Custom workaround commands 
+      # workarounds: |
+      #   # Optional: Add any special commands to run as workarounds to run before the main CI process
+      # Set additional environment variables
+      #   echo "CODECHECKER_IGNORE_PATHS=OpenTBS, TinyButStrong" >> $GITHUB_ENV
+      #   echo "PHPDOCCHECKER_IGNORE_PATHS=OpenTBS, TinyButStrong" >> $GITHUB_ENV
+      #   echo "MUSTACHE_IGNORE_NAMES=bookingoption_dates_custom_list_items.mustache,form_booking_options_selector_suggestion.mustache,table_list_container.mustache,optiondatesteacherstable_list.mustache,optiondatesteacherstable_list_row.mustache,optiondatesteacherstable_list_container.mustache,option_collapsible_close.mustache,option_collapsible_open.mustache,static.mustache,advcheckbox.mustache,select.mustache,shorttext.mustache,mobile_details_button.mustache,mobile_mybookings_list.mustache,mobile_booking_option_details.mustache,mobile_view_page.mustache" >> $GITHUB_ENV
+      #   echo "Running custom workaround commands"
+      # Debug - print environment variables to confirm they're set
+      #   echo "Debug: Environment Variables"
+      #   echo "CODECHECKER_IGNORE_PATHS: $CODECHECKER_IGNORE_PATHS"
+      #   echo "PHPDOCCHECKER_IGNORE_PATHS: $PHPDOCCHECKER_IGNORE_PATHS"
+      #   echo "MUSTACHE_IGNORE_NAMES: $MUSTACHE_IGNORE_NAMES"
+    secrets:
+      # Only needed if NOT using disable_release: true
+      moodle_org_token: ${{ secrets.MOODLE_ORG_TOKEN }}
