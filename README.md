@@ -174,6 +174,73 @@ __NOTE:__ This may involve having a clean copy of Moodle and installing the plug
 
 Grunt docs: https://docs.moodle.org/dev/Grunt#Running_grunt
 
+## Workarounds
+
+The `workarounds` parameter allows you to run custom commands before the main CI process starts. This is useful for setting environment variables, fixing common issues, or implementing temporary fixes for known problems. You can define your workaround commands in a YAML block, and they will be executed at the beginning of the CI workflow.
+
+
+### Common Use Cases
+
+- **Environment Variables**: Set custom environment variables that will be available to all subsequent steps in the workflow.
+- **AMD Module Workarounds**: Fix the "File is stale and needs to be rebuilt" error that occurs when AMD modules import Moodle core dependencies.
+- **Custom Path Ignores**: Specify files or directories to ignore during various testing steps.
+- **Dependency Fixes**: Install or configure dependencies needed before the main tests run.
+
+### Notes
+
+- Environment variables set using `>> $GITHUB_ENV` will be available to all subsequent steps in the workflow.
+- You can verify environment variables are set correctly by adding debug `echo` statements.
+- The workarounds run **before** any of the standard Moodle plugin tests.
+- This is the ideal place to put **temporary fixes** that should be removed when upstream issues are resolved.
+
+### Example: AMD Module Workaround
+
+```yaml
+workarounds: |
+  # WORKAROUND: Fix for "File is stale and needs to be rebuilt" error
+  # See issue: https://github.com/moodlehq/moodle-plugin-ci/issues/350
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  cd moodle
+  nvm use
+  npm install
+  npm install -g grunt-cli
+  cd ../plugin
+  echo "=== Building AMD files before CI check ==="
+  grunt --gruntfile ../moodle/Gruntfile.js amd
+  cd ..
+```
+## Custom Steps
+
+You can add custom steps to run at the end of the CI workflow by using the `custom_steps` parameter. This is useful for running additional tests or tasks specific to your plugin.
+
+Example:
+
+```yaml
+custom_steps: |
+  # Run Vue.js tests
+  if [ -d "plugin/vue3" ]; then
+    cd plugin/vue3
+    npm install
+    npm test
+    cd ../..
+  fi
+  
+  # Run any other custom commands
+  echo "Running additional custom verification"
+  php plugin/verify.php
+```
+These steps will be executed after all the standard Moodle plugin tests have completed.
+
+### Benefits of This Approach
+
+1. **Flexibility**: Users can add any custom steps they need
+2. **Isolation**: Custom steps run at the end, so they don't interfere with the standard tests
+3. **Optional**: The custom steps section is entirely optional
+4. **Context**: The steps run in the same environment/workspace as the standard tests
+
+This solution gives your users the flexibility to add their Vue.js testing or any other custom verification steps while keeping the core workflow standardized.
+
 ## Using the Labeled Issue Workflow in Your Moodle Plugin
 
 This feature allows you to automatically create tasks in ERPNext when issues in your GitHub repository are labeled. Here's how to set it up:
@@ -273,3 +340,4 @@ You can release your plugin in one of two ways:
 - Manually trigger the workflow with a specific tag name
 
 And when using the CI workflow, remember to set `disable_release: true` to prevent duplicate releases
+

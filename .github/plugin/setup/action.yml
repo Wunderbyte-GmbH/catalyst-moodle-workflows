@@ -219,3 +219,13 @@ runs:
 
         echo "phpdoc checks - OK"
       shell: bash
+
+    - name: Run custom steps
+      if: ${{ inputs.custom_steps != '' }}
+      run: |
+        echo "::group::Running custom steps"
+
+        ${{ inputs.custom_steps }}
+
+        echo "::endgroup::"
+      shell: bash

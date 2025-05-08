@@ -20,6 +20,10 @@ on:
         type: string
         description: 'Custom workaround commands to run before the main CI process'
         required: false
+      custom_steps:
+        type: string
+        description: 'Custom steps to run at the end of the CI workflow'
+        required: false
       disable_behat:
         type: boolean
       disable_mustache:
