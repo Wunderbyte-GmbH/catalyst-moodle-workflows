@@ -9,7 +9,7 @@ on:
 
 jobs:
   create-task:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-erpnext
 
     steps:
       - name: Format Payload
