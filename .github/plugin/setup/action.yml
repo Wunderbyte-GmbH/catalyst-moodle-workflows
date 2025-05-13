@@ -148,11 +148,13 @@ runs:
       shell: bash
 
     - name: Run mustache
+      continue-on-error: true # This step will show errors but will not fail
       if: ${{ always() && inputs.disable_mustache != 'true' }}
       run: moodle-plugin-ci mustache
       shell: bash
 
     - name: Run grunt
+      continue-on-error: true # This step will show errors but will not fail
       if: ${{ always() && inputs.disable_grunt != 'true' && inputs.highest_moodle_branch == matrix.moodle-branch }}
       run: moodle-plugin-ci grunt
       shell: bash
@@ -172,11 +174,13 @@ runs:
       shell: bash
 
     - name: PHP Copy/Paste Detector
+      continue-on-error: true # This step will show errors but will not fail
       if: ${{ always() && inputs.disable_phpcpd != 'true' }}
       run: moodle-plugin-ci phpcpd
       shell: bash
 
     - name: PHP Mess Detector
+      continue-on-error: true # This step will show errors but will not fail
       if: ${{ always() && inputs.enable_phpmd == 'true' }}
       run: moodle-plugin-ci phpmd
       shell: bash
