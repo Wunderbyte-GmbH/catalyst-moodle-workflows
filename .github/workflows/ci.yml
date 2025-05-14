@@ -101,7 +101,7 @@ jobs:
     if: needs.pre_job.outputs.should_skip != 'true'
     name: prepare test matrix
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.moodle_branches }}-${{ inputs.extra_plugin_runners }}
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.moodle_branches }}
       cancel-in-progress: true
     runs-on: 'ubuntu-latest'
     outputs:
