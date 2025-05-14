@@ -223,7 +223,7 @@ runs:
       shell: bash
 
     - name: Run custom steps
-      if: ${{ inputs.custom_steps != '' }}
+      if: ${{ always() && inputs.custom_steps != '' }}
       run: |
         echo "::group::Running custom steps"
 
