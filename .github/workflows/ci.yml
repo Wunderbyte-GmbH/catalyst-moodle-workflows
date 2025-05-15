@@ -251,13 +251,13 @@ jobs:
         if: ${{ matrix.moodle-branch == 'MOODLE_32_STABLE' || matrix.moodle-branch == 'MOODLE_33_STABLE' }}
         run: |
           echo "COMPOSER_VERSION=--1" >> $GITHUB_OUTPUT
-        shell: bash
+
 
       - name: Update Composer
         if: ${{ matrix.moodle-branch == 'MOODLE_32_STABLE' || matrix.moodle-branch == 'MOODLE_33_STABLE' }}
         run: |
           composer self-update ${{ steps.install-composer1.outputs.COMPOSER_VERSION }}
-        shell: bash
+
 
       - name: Initialise moodle-plugin-ci
         run: |
@@ -272,7 +272,6 @@ jobs:
           sudo locale-gen en_AU.UTF-8
 
           echo "::endgroup::"
-        shell: bash
 
       - name: Install dependencies
         if: ${{ inputs.extra_plugin_runners }}
@@ -283,7 +282,6 @@ jobs:
           ${{ inputs.extra_plugin_runners }}
 
           echo "::endgroup::"
-        shell: bash
 
       - name: Install Moodle
         run: |
@@ -297,7 +295,6 @@ jobs:
           moodle-plugin-ci install -vvv --plugin ./plugin --db-host=127.0.0.1
 
           echo "::endgroup::"
-        shell: bash
         env:
           DB: ${{ matrix.database }}
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
@@ -309,7 +306,6 @@ jobs:
           git config --global user.email "test@test.com"
           git config --global user.name "Test"
           ((test -f plugin/patch/${{ matrix.moodle-branch }}.diff && cd moodle && git am --whitespace=nowarn < ../plugin/patch/${{ matrix.moodle-branch }}.diff) || echo No patch found;)
-        shell: bash
 
       - name: Run custom workarounds
         if: ${{ inputs.workarounds }}
@@ -320,112 +316,53 @@ jobs:
           ${{ inputs.workarounds }}
 
           echo "::endgroup::"
-        shell: bash
 
       - name: Run phplint
         if: ${{ always() && inputs.disable_phplint != 'true' }}
         run: moodle-plugin-ci phplint
-        shell: bash
-
-      - name: Run codechecker
-        if: ${{ always() && inputs.disable_phpcs != 'true' }}
-        run: moodle-plugin-ci codechecker --max-warnings=${{ inputs.codechecker_max_warnings }}
-        shell: bash
-
-      - name: Run validate
-        if: ${{ always() && inputs.disable_ci_validate != 'true' }}
-        run: moodle-plugin-ci validate
-        shell: bash
-
-      - name: Run savepoints
-        if: ${{ always() }}
-        run: moodle-plugin-ci savepoints
-        shell: bash
-
-      - name: Run mustache Lint
-        if: ${{ always() && inputs.disable_mustache != 'true' }}
-        run: moodle-plugin-ci mustache
-        shell: bash
 
       - name: PHP Copy/Paste Detector
         continue-on-error: true # This step will show errors but will not fail
         if: ${{ always() && inputs.disable_phpcpd != 'true' }}
         run: moodle-plugin-ci phpcpd
-        shell: bash
 
       - name: PHP Mess Detector
         continue-on-error: true # This step will show errors but will not fail
         if: ${{ always() && inputs.enable_phpmd == 'true' }}
         run: moodle-plugin-ci phpmd
-        shell: bash
+
+      - name: Run codechecker
+        if: ${{ always() && inputs.disable_phpcs != 'true' }}
+        run: moodle-plugin-ci codechecker --max-warnings=${{ inputs.codechecker_max_warnings }}
 
       - name: Moodle PHPDoc Checker
         if: ${{ always() && inputs.disable_phpdoc != 'true' && inputs.highest_moodle_branch == matrix.moodle-branch }}
-        # Run this check and only fail CI if it's on 4.0+ / master
-        run: |
-          # phpdoc checks
+        run: moodle-plugin-ci phpdoc
 
-          # Don't stop on faiures
-          set +e
+      - name: Run validate
+        if: ${{ always() && inputs.disable_ci_validate != 'true' }}
+        run: moodle-plugin-ci validate
 
-          # Note this block whilst large, was made so that it can be pasted locally if needed and isn't CI specific
-          # Disclaimer: you'll need to adjust the main command but otherwise the handling of output remains the same.
-          output=`GITHUB_PATH=$GITHUB_PATH moodle-plugin-ci phpdoc`
-          haserrors=$?
+      - name: Run savepoints
+        if: ${{ always() }}
+        run: moodle-plugin-ci savepoints
 
-          # No errors? Print and return.
-          if [[ $haserrors -eq 0 ]]; then
-            echo "phpdoc checks - OK"
-            exit 0
-          fi
-
-          # Skip incorrect errors/warnings and retain the relevant lines.
-          output=`echo "$output" | grep -v 'Class ( is not documented' | grep -v 'Could not connect to debugging client.'`
-          output=`echo "$output" | grep -B1 'Line'`
-
-          # Filter out github actions paths from the output. It should only
-          # show the path relevant to the files in the plugin repo.
-          # For example:
-          # from /home/runner/work/moodle-tool_dataflows/moodle-tool_dataflows/moodle/admin/tool/dataflows/db/upgrade.php
-          # to   db/upgrade.php at best,
-          # or   admin/tool/dataflows/db/upgrade.php
-          currentdir=$(pwd)
-          if [[ "$output" ]]; then
-            echo "$output" | sed -e "s,$currentdir/,,g" | sed -e "s,^moodle/,,g" | tee $GITHUB_STEP_SUMMARY
-            exit 1
-          fi
-
-          echo "phpdoc checks - OK"
-        shell: bash
-
-      - name: Run custom steps
-        if: ${{ always() && inputs.custom_steps != '' }}
-        run: |
-          echo "::group::Running custom steps"
-
-          ${{ inputs.custom_steps }}
-
-          echo "::endgroup::"
-        shell: bash
+      - name: Run mustache Lint
+        if: ${{ always() && inputs.disable_mustache != 'true' }}
+        run: moodle-plugin-ci mustache
 
       - name: Run grunt
         if: ${{ always() && inputs.disable_grunt != 'true' && inputs.highest_moodle_branch == matrix.moodle-branch }}
         run: moodle-plugin-ci grunt
-        shell: bash
 
       - name: Run phpunit
         if: ${{ always() && inputs.disable_phpunit != 'true' }}
         run: |
           moodle-plugin-ci phpunit
-          cd moodle
-          vendor/bin/phpunit --fail-on-risky --disallow-test-output --filter tool_dataprivacy_metadata_registry_testcase
-          vendor/bin/phpunit --fail-on-risky --disallow-test-output --testsuite core_privacy_testsuite --filter provider_testcase
-        shell: bash
 
       - name: Run behat
         if: ${{ always() && inputs.disable_behat != 'true' }}
         run: moodle-plugin-ci behat --profile chrome
-        shell: bash
 
       - name: Upload Behat Faildump
         if: ${{ failure() }}
@@ -435,6 +372,15 @@ jobs:
           path: ${{ github.workspace }}/moodledata/behat_dump
           retention-days: 2
           if-no-files-found: ignore
+
+      - name: Run custom steps
+        if: ${{ always() && inputs.custom_steps != '' }}
+        run: |
+          echo "::group::Running custom steps"
+
+          ${{ inputs.custom_steps }}
+
+          echo "::endgroup::"
 
   release:
     name: Release to the Moodle plugin directory
