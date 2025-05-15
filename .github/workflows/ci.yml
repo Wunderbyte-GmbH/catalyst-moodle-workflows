@@ -16,6 +16,10 @@ on:
         type: string
       extra_plugin_runners:
         type: string
+      install_dependencies_env:
+        type: string
+        description: 'Environment variables to be set during moodle-plugin-ci install (JSON format)'
+        required: false
       workarounds:
         type: string
         description: 'Custom workaround commands to run before the main CI process'
@@ -283,6 +287,10 @@ jobs:
 
       - name: Install Moodle
         run: |
+          # Set up additional environment variables if provided
+          if [ ! -z "${{ inputs.install_dependencies_env }}" ]; then
+            echo "${{ inputs.install_dependencies_env }}" >> $GITHUB_ENV
+          fi
           # Install moodle commands
           echo "::group::Moodle install output"
 

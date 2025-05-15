@@ -25,6 +25,12 @@ jobs:
       #   moodle-plugin-ci add-plugin --branch master branchup/moodle-filter_shortcodes
       #   moodle-plugin-ci add-plugin --branch main Wunderbyte-GmbH/moodle-tool_mocktesttime
 
+      # Environment variables for moodle-plugin-ci install
+      #install_dependencies_env: |
+      #  MUSTACHE_IGNORE_NAMES=bookingoption_dates_custom_list_items.mustache,form_booking_options_selector_suggestion.mustache,table_list_container.mustache
+      #  CODECHECKER_IGNORE_PATHS=OpenTBS, TinyButStrong
+      #  PHPDOCCHECKER_IGNORE_PATHS=OpenTBS, TinyButStrong
+      
       # If you need to disable specific tests
       # disable_phpcpd: false
       # disable_mustache: false
@@ -48,18 +54,6 @@ jobs:
       # This might not be needed with the reusable workflow as it might handle this already
 
       # workarounds: |
-      #   # Optional: Add any special commands to run as workarounds to run before the main CI process
-      # Set additional environment variables
-      #   echo "CODECHECKER_IGNORE_PATHS=OpenTBS, TinyButStrong" >> $GITHUB_ENV
-      #   echo "PHPDOCCHECKER_IGNORE_PATHS=OpenTBS, TinyButStrong" >> $GITHUB_ENV
-      #   echo "MUSTACHE_IGNORE_NAMES=bookingoption_dates_custom_list_items.mustache,form_booking_options_selector_suggestion.mustache,table_list_container.mustache,optiondatesteacherstable_list.mustache,optiondatesteacherstable_list_row.mustache,optiondatesteacherstable_list_container.mustache,option_collapsible_close.mustache,option_collapsible_open.mustache,static.mustache,advcheckbox.mustache,select.mustache,shorttext.mustache,mobile_details_button.mustache,mobile_mybookings_list.mustache,mobile_booking_option_details.mustache,mobile_view_page.mustache" >> $GITHUB_ENV
-      #   echo "Running custom workaround commands"
-      # Debug - print environment variables to confirm they're set
-      #   echo "Debug: Environment Variables"
-      #   echo "CODECHECKER_IGNORE_PATHS: $CODECHECKER_IGNORE_PATHS"
-      #   echo "PHPDOCCHECKER_IGNORE_PATHS: $PHPDOCCHECKER_IGNORE_PATHS"
-      #   echo "MUSTACHE_IGNORE_NAMES: $MUSTACHE_IGNORE_NAMES"
-
       #  # WORKAROUND 17/04/2025: The following code is a workaround for the "File is stale and needs to be rebuilt" error
       #  # This occurs when AMD modules import Moodle core dependencies
       #  # See issue: https://github.com/moodlehq/moodle-plugin-ci/issues/350
