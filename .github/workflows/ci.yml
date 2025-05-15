@@ -336,7 +336,7 @@ jobs:
         run: moodle-plugin-ci codechecker --max-warnings=${{ inputs.codechecker_max_warnings }}
 
       - name: Moodle PHPDoc Checker
-        if: ${{ always() && inputs.disable_phpdoc != 'true' && inputs.highest_moodle_branch == matrix.moodle-branch }}
+        if: ${{ always() && inputs.disable_phpdoc != 'true' }}
         run: moodle-plugin-ci phpdoc
 
       - name: Run validate
@@ -352,7 +352,7 @@ jobs:
         run: moodle-plugin-ci mustache
 
       - name: Run grunt
-        if: ${{ always() && inputs.disable_grunt != 'true' && inputs.highest_moodle_branch == matrix.moodle-branch }}
+        if: ${{ always() && inputs.disable_grunt != 'true' }}
         run: moodle-plugin-ci grunt
 
       - name: Run phpunit
