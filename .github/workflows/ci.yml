@@ -358,7 +358,7 @@ jobs:
       - name: Run phpunit
         if: ${{ always() && inputs.disable_phpunit != 'true' }}
         run: |
-          moodle-plugin-ci phpunit
+          moodle-plugin-ci phpunit --testdox
 
       - name: Run behat
         if: ${{ always() && inputs.disable_behat != 'true' }}
