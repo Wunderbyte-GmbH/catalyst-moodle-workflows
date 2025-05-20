@@ -16,10 +16,6 @@ on:
         type: string
       extra_plugin_runners:
         type: string
-      install_dependencies_env:
-        type: string
-        description: 'Environment variables to be set during moodle-plugin-ci install (JSON format)'
-        required: false
       workarounds:
         type: string
         description: 'Custom workaround commands to run before the main CI process'
@@ -75,6 +71,16 @@ on:
       mustache_ignore_names:
         type: string
         description: 'Mustache templates to ignore during the CI process'
+        required: false
+        default: ''
+      codechecker_ignore_paths:
+        type: string
+        description: 'Paths to ignore during codechecker checks'
+        required: false
+        default: ''
+      phpdocchecker_ignore_paths:
+        type: string
+        description: 'Paths to ignore during phpdoc checks'
         required: false
         default: ''
       ignore_paths:
@@ -230,6 +236,16 @@ jobs:
           if [ -n "${{ inputs.mustache_ignore_names }}" ]; then
             echo "MUSTACHE_IGNORE_NAMES=${{ inputs.mustache_ignore_names }}" >> $GITHUB_ENV
           fi
+
+          # Set CODECHECKER_IGNORE_PATHS if provided
+          if [ -n "${{ inputs.codechecker_ignore_paths }}" ]; then
+            echo "CODECHECKER_IGNORE_PATHS=${{ inputs.codechecker_ignore_paths }}" >> $GITHUB_ENV
+          fi
+
+          # Set PHPDOCCHECKER_IGNORE_PATHS if provided
+          if [ -n "${{ inputs.phpdocchecker_ignore_paths }}" ]; then
+            echo "PHPDOCCHECKER_IGNORE_PATHS=${{ inputs.phpdocchecker_ignore_paths }}" >> $GITHUB_ENV
+          fi
       - name: Check out CI code
         uses: actions/checkout@v4
         with:
@@ -295,10 +311,6 @@ jobs:
 
       - name: Install Moodle
         run: |
-          # Set up additional environment variables if provided
-          if [ ! -z "${{ inputs.install_dependencies_env }}" ]; then
-            echo "${{ inputs.install_dependencies_env }}" >> $GITHUB_ENV
-          fi
           # Install moodle commands
           echo "::group::Moodle install output"
 
@@ -328,29 +340,29 @@ jobs:
           echo "::endgroup::"
 
       - name: Run phplint
-        if: ${{ always() && inputs.disable_phplint != 'true' }}
+        if: ${{ always() && inputs.disable_phplint != true }}
         run: moodle-plugin-ci phplint
 
       - name: PHP Copy/Paste Detector
         continue-on-error: true # This step will show errors but will not fail
-        if: ${{ always() && inputs.disable_phpcpd != 'true' }}
+        if: ${{ always() && inputs.disable_phpcpd != true }}
         run: moodle-plugin-ci phpcpd
 
       - name: PHP Mess Detector
         continue-on-error: true # This step will show errors but will not fail
-        if: ${{ always() && inputs.enable_phpmd == 'true' }}
+        if: ${{ always() && inputs.enable_phpmd == true }}
         run: moodle-plugin-ci phpmd
 
       - name: Run codechecker
-        if: ${{ always() && inputs.disable_phpcs != 'true' }}
+        if: ${{ always() && inputs.disable_phpcs != true }}
         run: moodle-plugin-ci codechecker --max-warnings=${{ inputs.codechecker_max_warnings }}
 
       - name: Moodle PHPDoc Checker
-        if: ${{ always() && inputs.disable_phpdoc != 'true' }}
+        if: ${{ always() && inputs.disable_phpdoc != true }}
         run: moodle-plugin-ci phpdoc
 
       - name: Run validate
-        if: ${{ always() && inputs.disable_ci_validate != 'true' }}
+        if: ${{ always() && inputs.disable_ci_validate != true }}
         run: moodle-plugin-ci validate
 
       - name: Run savepoints
@@ -358,20 +370,20 @@ jobs:
         run: moodle-plugin-ci savepoints
 
       - name: Run mustache Lint
-        if: ${{ always() && inputs.disable_mustache != 'true' }}
+        if: ${{ always() && inputs.disable_mustache != true }}
         run: moodle-plugin-ci mustache
 
       - name: Run grunt
-        if: ${{ always() && inputs.disable_grunt != 'true' }}
+        if: ${{ always() && inputs.disable_grunt != true }}
         run: moodle-plugin-ci grunt
 
       - name: Run phpunit
-        if: ${{ always() && inputs.disable_phpunit != 'true' }}
+        if: ${{ always() && inputs.disable_phpunit != true }}
         run: |
           moodle-plugin-ci phpunit --testdox
 
       - name: Run behat
-        if: ${{ always() && inputs.disable_behat != 'true' }}
+        if: ${{ always() && inputs.disable_behat != true }}
         run: moodle-plugin-ci behat --profile chrome
 
       - name: Upload Behat Faildump

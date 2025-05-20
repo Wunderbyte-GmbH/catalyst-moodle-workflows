@@ -25,12 +25,18 @@ jobs:
       #   moodle-plugin-ci add-plugin --branch master branchup/moodle-filter_shortcodes
       #   moodle-plugin-ci add-plugin --branch main Wunderbyte-GmbH/moodle-tool_mocktesttime
 
-      # Environment variables for moodle-plugin-ci install
-      #install_dependencies_env: |
-      #  MUSTACHE_IGNORE_NAMES=bookingoption_dates_custom_list_items.mustache,form_booking_options_selector_suggestion.mustache,table_list_container.mustache
-      #  CODECHECKER_IGNORE_PATHS=OpenTBS, TinyButStrong
-      #  PHPDOCCHECKER_IGNORE_PATHS=OpenTBS, TinyButStrong
-      
+      # If you need to ignore specific paths (third-party libraries are ignored by default)
+      # ignore_paths: "vue3,moodle/tests/fixtures,moodle/Sniffs,moodle/vue3,OpenTBS,TinyButStrong"
+
+      # Specify paths to ignore for mustache lint
+      # mustache_ignore_names: 'cashier.mustache,shopping_cart_item.mustache,history_item.mustache,form-user-selector-suggestion.mustache,shopping_cart_popover.mustache'
+
+      # Specify paths to ignore for code checker
+      # codechecker_ignore_paths: 'OpenTBS, TinyButStrong'
+
+      # Specify paths to ignore for PHPDoc checker
+      # phpdocchecker_ignore_paths: 'OpenTBS, TinyButStrong'
+
       # If you need to disable specific tests
       # disable_phpcpd: 'true'
       # disable_mustache: 'true'
@@ -46,10 +52,6 @@ jobs:
 
       # For strict code quality checks
       # codechecker_max_warnings: 0
-
-
-      # If you need to ignore specific paths (third-party libraries are ignored by default)
-      # ignore_paths: "vue3,moodle/tests/fixtures,moodle/Sniffs,moodle/vue3,OpenTBS,TinyButStrong"
 
       # Override to exclude stale AMD file check (similar to your current workaround)
       # This might not be needed with the reusable workflow as it might handle this already
