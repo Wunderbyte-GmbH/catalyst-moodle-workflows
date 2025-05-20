@@ -94,6 +94,12 @@ on:
     secrets:
       moodle_org_token:
         required: false
+      brandname:
+        required: false
+      clientid:
+        required: false
+      payone_secret:
+        required: false
 
 jobs:
   pre_job:
@@ -245,6 +251,19 @@ jobs:
           # Set PHPDOCCHECKER_IGNORE_PATHS if provided
           if [ -n "${{ inputs.phpdocchecker_ignore_paths }}" ]; then
             echo "PHPDOCCHECKER_IGNORE_PATHS=${{ inputs.phpdocchecker_ignore_paths }}" >> $GITHUB_ENV
+          fi
+
+          # Set PAYONE related environment variables if secrets are provided
+          if [ -n "${{ secrets.brandname }}" ]; then
+            echo "BRANDNAME=${{ secrets.brandname }}" >> $GITHUB_ENV
+          fi
+
+          if [ -n "${{ secrets.clientid }}" ]; then
+            echo "CLIENTID=${{ secrets.clientid }}" >> $GITHUB_ENV
+          fi
+
+          if [ -n "${{ secrets.payone_secret }}" ]; then
+            echo "PAYONE_SECRET=${{ secrets.payone_secret }}" >> $GITHUB_ENV
           fi
       - name: Check out CI code
         uses: actions/checkout@v4

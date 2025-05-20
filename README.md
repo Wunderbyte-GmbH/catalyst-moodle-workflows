@@ -40,10 +40,10 @@ Any number _greater_ than the [latest available stable branch](https://github.co
 
 For most cases, this following demonstrates how your workflow file would typically look.
 
-Create `.github/workflows/ci.yml` with the below template in your plugin
+Create `.github/workflows/moodle-plugin-ci.yml` with the below template in your plugin
 repository.
 ```yaml
-# .github/workflows/ci.yml
+# .github/workflows/moodle-plugin-ci.yml
 name: ci
 
 on: [push, pull_request]
@@ -72,26 +72,59 @@ You can add extra options to disable checks that you might not want, or to add a
 
 Below lists the available inputs which are _all optional_:
 
-| Inputs                   | Description                                                                                                                                                                              |
-|--------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| codechecker_max_warnings | To fail on warnings, set this to 0                                                                                                                                                       |
-| extra_plugin_runners     | Command to install more dependencies                                                                                                                                                     |
-| disable_behat            | Set `true` to disable behat tests.                                                                                                                                                       |
-| disable_phpdoc           | Set `true` to disable phpdoc tests.                                                                                                                                                      |
-| disable_phpcs            | Set `true` to disable phpcs (codechecker) tests.                                                                                                                                         |
-| disable_phplint          | Set `true` to disable phplint tests.                                                                                                                                                     |
-| disable_phpunit          | Set `true` to disable phpunit tests.                                                                                                                                                     |
-| disable_grunt            | Set `true` to disable grunt.                                                                                                                                                             |
-| disable_mustache         | Set `true` to disable mustache.                                                                                                                                                          |
-| disable_master           | If `true`, this will skip testing against moodle/master branch                                                                                                                           |
-| disable_release          | If `true`, this will skip the release job                                                                                                                                                |
-| disable_phpcpd           | If `true`, this will skip phpcpd checks                                                                                                                                                  |
-| disable_ci_validate      | If `true`, this will skip moodle-plugin-ci validate checks                                                                                                                               |
-| enable_phpmd             | If `true`, to enable phpmd                                                                                                                                                               |
-| release_branches         | Name of the non-standardly named branch which should run the release job                                                                                                                 |
-| moodle_branches          | Specify the MOODLE_XX_STABLE branch you specifically want to test against. This is _not_ recommended, and instead you should configuring a supported range.                              |
-| min_php                  | The minimum php version to test. Set this to support the minimum php version supported by the plugin. Defaults to '7.1', however more recent Moodle branches only test higher versions.  |
-| ignore_paths             | Specify custom paths for CI to ignore. Third party libraries are ignored by default. |
+| Inputs                    | Description                                                                                                                                                                              |
+|---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| codechecker_max_warnings  | To fail on warnings, set this to 0                                                                                                                                                       |
+| extra_plugin_runners      | Command to install more dependencies                                                                                                                                                     |
+| disable_behat             | Set `true` to disable behat tests.                                                                                                                                                       |
+| disable_phpdoc            | Set `true` to disable phpdoc tests.                                                                                                                                                      |
+| disable_phpcs             | Set `true` to disable phpcs (codechecker) tests.                                                                                                                                         |
+| disable_phplint           | Set `true` to disable phplint tests.                                                                                                                                                     |
+| disable_phpunit           | Set `true` to disable phpunit tests.                                                                                                                                                     |
+| disable_grunt             | Set `true` to disable grunt.                                                                                                                                                             |
+| disable_mustache          | Set `true` to disable mustache.                                                                                                                                                          |
+| disable_master            | If `true`, this will skip testing against moodle/master branch                                                                                                                           |
+| disable_release           | If `true`, this will skip the release job                                                                                                                                                |
+| disable_phpcpd            | If `true`, this will skip phpcpd checks                                                                                                                                                  |
+| disable_ci_validate       | If `true`, this will skip moodle-plugin-ci validate checks                                                                                                                               |
+| enable_phpmd              | If `true`, to enable phpmd                                                                                                                                                               |
+| release_branches          | Name of the non-standardly named branch which should run the release job                                                                                                                 |
+| moodle_branches           | Specify the MOODLE_XX_STABLE branch you specifically want to test against. This is _not_ recommended, and instead you should configuring a supported range.                              |
+| min_php                   | The minimum php version to test. Set this to support the minimum php version supported by the plugin. Defaults to '7.4', however more recent Moodle branches only test higher versions.  |
+| ignore_paths              | Specify custom paths for CI to ignore. Third party libraries are ignored by default.                                                                                                     |
+| mustache_ignore_names     | Specify mustache templates to ignore during the mustache lint check. Useful for complex templates that might trigger false positives.                                                    |
+| codechecker_ignore_paths  | Specify paths to ignore during the PHP CodeSniffer check. Useful for third-party libraries or code that doesn't follow Moodle coding standards.                                          |
+| phpdocchecker_ignore_paths| Specify paths to ignore during the PHPDoc check. Useful for third-party libraries or legacy code.                                                                                        |
+
+
+#### Secrets
+These secrets are passed to the environment variables with the same name (in uppercase), making them available during tests.
+
+| Secret                    | Description                                                               | Required                                                                                                      |
+|---------------------------|---------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|
+| moodle_org_token          | Token for publishing to the Moodle plugin directory                       | Only if publishing                                                                                            |
+| brandname                 | Used for plugins that require a brand name for testing                    | No                                                                                                            |
+| clientid                  | Used for plugins that require a client ID for testing                     | No                                                                                                            |
+| payone_secret             | Used for payment gateway plugins that require a PAYONE secret for testing | No                                                                                                            |
+
+Example of using secrets:
+```yaml
+# .github/workflows/moodle-plugin-ci.yml
+name: ci
+
+on: [push, pull_request]
+
+jobs:
+  ci:
+    uses: Wunderbyte-GmbH/catalyst-moodle-workflows/.github/workflows/ci.yml@main
+    secrets:
+      brandname: ${{ secrets.BRANDNAME }}
+      clientid: ${{ secrets.CLIENTID }}
+      payone_secret: ${{ secrets.PAYONE_SECRET }}
+      moodle_org_token: ${{ secrets.MOODLE_ORG_TOKEN }}
+    with:
+      # Other options here
+```
 
 ### Running with dependencies
 If you'd require to run your workflow against specific versions of a plugin you depend on, then you can specify a branch you'd like to run each job against. Like following:   
@@ -197,6 +230,9 @@ The `workarounds` parameter allows you to run custom commands before the main CI
 
 ```yaml
 workarounds: |
+  # Set additional environment variables
+  # echo "SOME_PATHS=OpenTBS, TinyButStrong" >> $GITHUB_ENV
+
   # WORKAROUND: Fix for "File is stale and needs to be rebuilt" error
   # See issue: https://github.com/moodlehq/moodle-plugin-ci/issues/350
   export NVM_DIR="$HOME/.nvm"
