@@ -42,13 +42,14 @@ jobs:
       # phpdocchecker_ignore_paths: 'OpenTBS, TinyButStrong'
 
       # If you need to disable specific tests
-      # disable_phpcpd: true
-      # disable_mustache: true
       # disable_phpunit: true
+      # disable_behat: true
       # disable_grunt: true
+      # disable_phpcpd: true
       # disable_phpdoc: true
       # disable_phpcs: true
       # disable_phplint: true
+      # disable_mustache: true
       # disable_ci_validate: true
 
       # If you need to enable PHPMD
