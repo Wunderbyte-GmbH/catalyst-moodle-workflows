@@ -142,3 +142,4 @@ jobs:
       # brandname: ${{ secrets.BRANDNAME }}
       # clientid: ${{ secrets.CLIENTID }}
       # payone_secret: ${{ secrets.PAYONE_SECRET }}
+      # mpay_secret: ${{ secrets.MPAY_SECRET }}

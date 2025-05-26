@@ -104,6 +104,8 @@ on:
         required: false
       payone_secret:
         required: false
+      mpay_secret:
+        required: false
 
 jobs:
   prepare_matrix:
@@ -256,6 +258,11 @@ jobs:
           if [ -n "${{ secrets.payone_secret }}" ]; then
             echo "PAYONE_SECRET=${{ secrets.payone_secret }}" >> $GITHUB_ENV
           fi
+
+          if [ -n "${{ secrets.mpay_secret }}" ]; then
+            echo "MPAY_SECRET=${{ secrets.mpay_secret }}" >> $GITHUB_ENV
+          fi
+
       - name: Check out CI code
         uses: actions/checkout@v4
         with:
