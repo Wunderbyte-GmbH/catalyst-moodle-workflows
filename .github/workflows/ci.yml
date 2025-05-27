@@ -266,24 +266,33 @@ jobs:
           fi
 
       - name: Setup SSH key for private repositories
-        if: ${{ secrets.ssh_private_key != '' }}
+        if: ${{ env.SSH_PRIVATE_KEY != '' }}
         run: |
-          # Create SSH directory
-          mkdir -p ~/.ssh
-          
-          # Add SSH private key
-          echo "${{ secrets.ssh_private_key }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          
-          # Add GitHub to known hosts
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-          
-          # Start SSH agent and add key
-          eval "$(ssh-agent -s)"
-          ssh-add ~/.ssh/id_rsa
-          
-          # Configure git to use SSH for GitHub
-          git config --global url."git@github.com:".insteadOf "https://github.com/"
+          # Only run if SSH_PRIVATE_KEY is provided
+          if [ -n "$SSH_PRIVATE_KEY" ]; then
+            # Create SSH directory
+            mkdir -p ~/.ssh
+
+            # Add SSH private key
+            echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+
+            # Add GitHub to known hosts
+            ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+            # Start SSH agent and add key
+            eval "$(ssh-agent -s)"
+            ssh-add ~/.ssh/id_rsa
+
+            # Configure git to use SSH for GitHub
+            git config --global url."git@github.com:".insteadOf "https://github.com/"
+
+            echo "SSH key configured successfully"
+          else
+            echo "No SSH key provided, skipping SSH setup"
+          fi
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.ssh_private_key }}
 
       - name: Check out CI code
         uses: actions/checkout@v4
