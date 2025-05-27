@@ -67,7 +67,6 @@ You can add extra options to disable checks that you might not want, or to add a
       extra_plugin_runners: 'moodle-plugin-ci add-plugin catalyst/moodle-local_aws'
 ```
 
-
 #### `with` options
 
 Below lists the available inputs which are _all optional_:
@@ -102,12 +101,14 @@ Below lists the available inputs which are _all optional_:
 #### Secrets
 These secrets are passed to the environment variables with the same name (in uppercase), making them available during tests.
 
-| Secret                    | Description                                                               | Required                                                                                                      |
-|---------------------------|---------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|
-| moodle_org_token          | Token for publishing to the Moodle plugin directory                       | Only if publishing                                                                                            |
-| brandname                 | Used for plugins that require a brand name for testing                    | No                                                                                                            |
-| clientid                  | Used for plugins that require a client ID for testing                     | No                                                                                                            |
-| payone_secret             | Used for payment gateway plugins that require a PAYONE secret for testing | No                                                                                                            |
+| Secret                    | Description                                                                    | Required                                                                                                  |
+|---------------------------|--------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| moodle_org_token          | Token for publishing to the Moodle plugin directory                            | Only if publishing                                                                                        |
+| brandname                 | Used for plugins that require a brand name for testing                         | No                                                                                                        |
+| clientid                  | Used for plugins that require a client ID for testing                          | No                                                                                                        |
+| payone_secret             | Used for payment gateway plugins that require a PAYONE secret for testing      | No                                                                                                        |
+| mpay_secret               | Used for payment gateway plugins that require a MPAY secret for testing        | No                                                                                                        |
+| ssh_private_key           | Used for installing dependency plugins that are hosted in private repositories | No                                                                                                        |
 
 Example of using secrets:
 ```yaml
@@ -123,7 +124,7 @@ jobs:
       brandname: ${{ secrets.BRANDNAME }}
       clientid: ${{ secrets.CLIENTID }}
       payone_secret: ${{ secrets.PAYONE_SECRET }}
-      moodle_org_token: ${{ secrets.MOODLE_ORG_TOKEN }}
+      # moodle_org_token: ${{ secrets.MOODLE_ORG_TOKEN }}
     with:
       # Other options here
 ```

@@ -106,6 +106,8 @@ on:
         required: false
       mpay_secret:
         required: false
+      ssh_private_key:
+        required: false
 
 jobs:
   prepare_matrix:
@@ -262,6 +264,26 @@ jobs:
           if [ -n "${{ secrets.mpay_secret }}" ]; then
             echo "MPAY_SECRET=${{ secrets.mpay_secret }}" >> $GITHUB_ENV
           fi
+
+      - name: Setup SSH key for private repositories
+        if: ${{ secrets.ssh_private_key != '' }}
+        run: |
+          # Create SSH directory
+          mkdir -p ~/.ssh
+          
+          # Add SSH private key
+          echo "${{ secrets.ssh_private_key }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          
+          # Add GitHub to known hosts
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          
+          # Start SSH agent and add key
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_rsa
+          
+          # Configure git to use SSH for GitHub
+          git config --global url."git@github.com:".insteadOf "https://github.com/"
 
       - name: Check out CI code
         uses: actions/checkout@v4

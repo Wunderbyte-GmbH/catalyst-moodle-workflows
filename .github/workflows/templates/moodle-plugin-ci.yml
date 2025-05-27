@@ -143,3 +143,4 @@ jobs:
       # clientid: ${{ secrets.CLIENTID }}
       # payone_secret: ${{ secrets.PAYONE_SECRET }}
       # mpay_secret: ${{ secrets.MPAY_SECRET }}
+      # ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
