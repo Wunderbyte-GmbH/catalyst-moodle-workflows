@@ -13,21 +13,38 @@ jobs:
 
     steps:
       - name: Format Payload
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          LABEL_NAME: ${{ github.event.label.name }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
         run: |
-          sanitize() {
-            echo "$1" | jq -R '.' | sed 's/^"//;s/"$//'
-          }
-
-          SANITIZED_TITLE=$(sanitize "${{ github.event.issue.title }}")
-          SANITIZED_BODY=$(sanitize "${{ github.event.issue.body }}")
-
-          echo '{
-            "subject": "GH#${{ github.event.issue.number }} - '"$SANITIZED_TITLE"'",
-            "project": "${{ github.event.label.name }}",
-            "status": "Open",
-            "description": "<p><a href=\"${{ github.event.issue.html_url }}\">GH#${{ github.event.issue.number }}</a></p><br>'"$SANITIZED_BODY"'"
-          }' > payload.json
+          # Use jq with environment variables to handle quotes and special characters
+          jq -n \
+            --arg title "$ISSUE_TITLE" \
+            --arg body "$ISSUE_BODY" \
+            --arg number "$ISSUE_NUMBER" \
+            --arg project "$LABEL_NAME" \
+            --arg url "$ISSUE_URL" \
+            '{
+              "subject": ("GH#" + $number + " - " + $title),
+              "project": $project,
+              "status": "Open",
+              "description": ("<p><a href=\"" + $url + "\">GH#" + $number + "</a></p><br>" + $body)
+            }' > payload.json
 
       - name: Make API Request to ERPNext
         run: |
-          curl --fail -X POST -H "Content-Type: application/json" -H "Authorization: ${{ secrets.webhook_token }}" -d @payload.json https://erp.wunderbyte.at/api/resource/Task
+          if curl --fail -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: ${{ secrets.webhook_token }}" \
+            -d @payload.json \
+            https://erp.wunderbyte.at/api/resource/Task; then
+            echo "Task created successfully"
+          else
+            echo "Failed to create task"
+            echo "Payload content:"
+            cat payload.json
+            exit 1
+          fi
