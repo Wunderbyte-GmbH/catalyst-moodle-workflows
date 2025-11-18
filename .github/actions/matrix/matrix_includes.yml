@@ -6,6 +6,11 @@ include:
   - { moodle-branch: 'MOODLE_503_STABLE', php: '8.4', node: '22.14', mariadb-ver: '10.11', pgsql-ver: '14', database: 'pgsql' }
   - { moodle-branch: 'MOODLE_503_STABLE', php: '8.2', node: '22.14', mariadb-ver: '10.11', pgsql-ver: '14', database: 'mariadb' }
   - { moodle-branch: 'MOODLE_503_STABLE', php: '8.2', node: '22.14', mariadb-ver: '10.11', pgsql-ver: '14', database: 'pgsql' }
+  # Test all variants of 5.1.
+  - { moodle-branch: 'MOODLE_501_STABLE', php: '8.4', node: '22.14', mariadb-ver: '10.11', pgsql-ver: '14', database: 'mariadb' }
+  - { moodle-branch: 'MOODLE_501_STABLE', php: '8.4', node: '22.14', mariadb-ver: '10.11', pgsql-ver: '14', database: 'pgsql' }
+  - { moodle-branch: 'MOODLE_501_STABLE', php: '8.2', node: '22.14', mariadb-ver: '10.11', pgsql-ver: '14', database: 'mariadb' }
+  - { moodle-branch: 'MOODLE_501_STABLE', php: '8.2', node: '22.14', mariadb-ver: '10.11', pgsql-ver: '14', database: 'pgsql' }
   # Test all variants of 5.0.
   - { moodle-branch: 'MOODLE_500_STABLE', php: '8.4', node: '22.14', mariadb-ver: '10.11', pgsql-ver: '14', database: 'mariadb' }
   - { moodle-branch: 'MOODLE_500_STABLE', php: '8.4', node: '22.14', mariadb-ver: '10.11', pgsql-ver: '14', database: 'pgsql' }
