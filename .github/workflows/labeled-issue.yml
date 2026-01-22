@@ -20,7 +20,6 @@ jobs:
           LABEL_NAME: ${{ github.event.label.name }}
           ISSUE_URL: ${{ github.event.issue.html_url }}
         run: |
-          # Use jq with environment variables to handle quotes and special characters
           jq -n \
             --arg title "$ISSUE_TITLE" \
             --arg body "$ISSUE_BODY" \
@@ -28,10 +27,10 @@ jobs:
             --arg project "$LABEL_NAME" \
             --arg url "$ISSUE_URL" \
             '{
-              "subject": ("GH#" + $number + " - " + $title),
+              "subject": "GH#\($number) - \($title)",
               "project": $project,
               "status": "Open",
-              "description": ("<p><a href=\"" + $url + "\">GH#" + $number + "</a></p><br>" + $body)
+              "description": "<p><a href=\"\($url)\">GH#\($number)</a></p><br>\($body)"
             }' > payload.json
 
       - name: Make API Request to ERPNext
