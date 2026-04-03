@@ -1,0 +1,48 @@
+name: Moodle Plugin CI
+
+on: [push, pull_request]
+
+jobs:
+  ci:
+    uses: Wunderbyte-GmbH/catalyst-moodle-workflows/.github/workflows/ci.yml@main
+    with:
+      enable_self_hosted_ci: true
+      disable_release: true
+      enable_phpmd: true
+      codechecker_max_warnings: 0
+#      extra_plugin_runners: |
+#        moodle-plugin-ci add-plugin --branch main Wunderbyte-GmbH/moodle-local_rabbitmq
+#        moodle-plugin-ci add-plugin --branch main Wunderbyte-GmbH/moodle-local_handoutpdf
+#        moodle-plugin-ci add-plugin --branch main Wunderbyte-GmbH/moodle-block_handout
+#        moodle-plugin-ci add-plugin --branch main Wunderbyte-GmbH/moodle-availability_metadata
+#        moodle-plugin-ci add-plugin --branch main Wunderbyte-GmbH/moodle-local_quizattemptexport
+#        moodle-plugin-ci add-plugin --branch master Wunderbyte-GmbH/moodle-availability_user
+#        moodle-plugin-ci add-plugin --branch MOODLE_405_STABLE catalyst/moodle-auth_saml2
+
+# If you need to ignore specific paths (third-party libraries are ignored by default)
+      # ignore_paths: 'vue3,moodle/tests/fixtures,moodle/Sniffs,moodle/vue3,OpenTBS,TinyButStrong'
+
+      # If you need to ignore specific names (third-party libraries are ignored by default)
+      # ignore_names: '*.txt,fallback.css'
+
+      # Specify paths to ignore for mustache lint
+      # mustache_ignore_names: 'cashier.mustache,shopping_cart_item.mustache,history_item.mustache,form-user-selector-suggestion.mustache,shopping_cart_popover.mustache'
+
+      # Specify paths to ignore for code checker
+      # codechecker_ignore_paths: 'OpenTBS, TinyButStrong'
+
+      # Specify paths to ignore for PHPDoc checker
+      # phpdocchecker_ignore_paths: 'OpenTBS, TinyButStrong'
+
+      # If you need to disable specific tests
+      # disable_phpunit: true
+      # disable_behat: true
+      # disable_grunt: true
+      # disable_phpcpd: true
+      # disable_phpdoc: true
+      # disable_phpcs: true
+      # disable_phplint: true
+      # disable_mustache: true
+      # disable_ci_validate: true
+    secrets:
+      ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}

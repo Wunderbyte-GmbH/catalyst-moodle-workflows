@@ -65,6 +65,8 @@ You can add extra options to disable checks that you might not want, or to add a
       disable_behat: true
       disable_grunt: true
       extra_plugin_runners: 'moodle-plugin-ci add-plugin catalyst/moodle-local_aws'
+      # Optional: run the CI path on the self-hosted CI runner
+      # enable_self_hosted_ci: true
 ```
 
 #### `with` options
@@ -89,6 +91,7 @@ Below lists the available inputs which are _all optional_:
 | disable_ci_validate       | If `true`, this will skip moodle-plugin-ci validate checks                                                                                                                               |
 | enable_phpmd              | If `true`, to enable phpmd                                                                                                                                                               |
 | release_branches          | Name of the non-standardly named branch which should run the release job                                                                                                                 |
+| enable_self_hosted_ci     | If `true`, run the CI job on the self-hosted CI runner path instead of `ubuntu-latest`. This path includes self-hosted-specific cleanup and SSH setup, and the release job will not run. |
 | moodle_branches           | Specify the MOODLE_XX_STABLE branch you specifically want to test against. This is _not_ recommended, and instead you should configuring a supported range.                              |
 | min_php                   | The minimum php version to test. Set this to support the minimum php version supported by the plugin. Defaults to '7.4', however more recent Moodle branches only test higher versions.  |
 | ignore_paths              | Specify custom paths for CI to ignore. Third party libraries are ignored by default.                                                                                                     |
@@ -97,6 +100,42 @@ Below lists the available inputs which are _all optional_:
 | codechecker_ignore_paths  | Specify paths to ignore during the PHP CodeSniffer check. Useful for third-party libraries or code that doesn't follow Moodle coding standards.                                          |
 | phpdocchecker_ignore_paths| Specify paths to ignore during the PHPDoc check. Useful for third-party libraries or legacy code.                                                                                        |
 
+
+### Self-hosted CI mode
+
+By default, the reusable CI workflow runs on GitHub-hosted runners (`ubuntu-latest`).
+
+If you want to run the test job on your self-hosted CI runner instead, set:
+
+```yaml
+with:
+  enable_self_hosted_ci: true
+```
+When enable_self_hosted_ci: true:
+
+* the test job runs on [self-hosted, self-hosted-ci]
+* matrix execution is limited to one job at a time
+* extra cleanup is performed before/after the job because the runner is persistent
+* SSH is configured for cloning private dependency repositories
+* the release job does not run
+
+Example:
+```yaml
+jobs:
+  ci:
+    uses: Wunderbyte-GmbH/catalyst-moodle-workflows/.github/workflows/ci.yml@main
+    with:
+      enable_self_hosted_ci: true
+      disable_release: true
+      enable_phpmd: true
+      codechecker_max_warnings: 0
+      extra_plugin_runners: |
+        moodle-plugin-ci add-plugin --branch main Wunderbyte-GmbH/moodle-local_rabbitmq
+        moodle-plugin-ci add-plugin --branch main Wunderbyte-GmbH/moodle-local_handoutpdf
+        moodle-plugin-ci add-plugin --branch main Wunderbyte-GmbH/moodle-block_handout
+    secrets:
+      ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+```
 
 #### Secrets
 These secrets are passed to the environment variables with the same name (in uppercase), making them available during tests.
@@ -182,6 +221,9 @@ To view or modify the full matrix, please see it here: [.github/actions/matrix/m
 ## How does this automate releases?
 
 Whenever a change is made to version.php, the workflow is triggered on a release branch (e.g. __main__ / __MOODLE_XX_STABLE__), and tests pass, will it attempt to run the plugin/release action `.github/plugin/release/action.yml`. Doing so will automatically publish a release to the Moodle plugin directory at https://moodle.org/plugins.
+
+Note: the automatic release job only runs on the GitHub-hosted CI path.
+If `enable_self_hosted_ci: true`, the workflow skips the release job entirely.
 
 In the prepare step of the CI, it will have resolved the component name for you so you don't need to enter one manually, and the `MOODLE_ORG_TOKEN` secret should be set otherwise the plugin won't be published.
 

@@ -8,6 +8,10 @@ on:
         type: string
         description: 'Sets the branch the reusable workflow calls reusable workflow actions with'
         default: 'main'
+      enable_self_hosted_ci:
+        type: boolean
+        description: 'If true, run CI on the self-hosted CI runner path'
+        default: false
       codechecker_max_warnings:
         type: string
         description: 'Sets the value for --max-warnings on the moodle-plugin-ci codechecker step. Defaults to -1 which means no limit.'
@@ -177,6 +181,7 @@ jobs:
           min_php: ${{ inputs.min_php }}
 
   setup:
+    if: ${{ inputs.enable_self_hosted_ci != true }}
     name: ${{ matrix.moodle-branch }} - ${{ matrix.database }} - php ${{ matrix.php }} - ${{ needs.prepare_matrix.outputs.component }}
     needs: prepare_matrix
     strategy:
@@ -459,6 +464,266 @@ jobs:
 
           echo "::endgroup::"
 
+  setup_self_hosted:
+    if: ${{ inputs.enable_self_hosted_ci == true }}
+    name: self-hosted - ${{ matrix.moodle-branch }} - ${{ matrix.database }} - php ${{ matrix.php }} - ${{ needs.prepare_matrix.outputs.component }}
+    needs: prepare_matrix
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix: ${{ fromJson(needs.prepare_matrix.outputs.matrix) }}
+    env:
+      IGNORE_PATHS: tests/fixtures
+    concurrency:
+      group: self-hosted-${{ github.workflow }}-${{ github.ref }}-${{ matrix.moodle-branch }}-${{ matrix.database }}-${{ matrix.php }}-${{ needs.prepare_matrix.outputs.component }}
+      cancel-in-progress: true
+    runs-on: [self-hosted, self-hosted-ci]
+    services:
+      postgres:
+        image: "postgres:${{ matrix.pgsql-ver }}"
+        env:
+          POSTGRES_USER: 'postgres'
+          POSTGRES_HOST_AUTH_METHOD: 'trust'
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+        ports:
+          - 5432:5432
+      mariadb:
+        image: "mariadb:${{ matrix.mariadb-ver }}"
+        env:
+          MYSQL_USER: 'root'
+          MYSQL_ALLOW_EMPTY_PASSWORD: "true"
+          MYSQL_CHARACTER_SET_SERVER: "utf8mb4"
+          MYSQL_COLLATION_SERVER: "utf8mb4_unicode_ci"
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+      mysql:
+        image: "mysql:${{ matrix.mysql-ver }}"
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: "true"
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+    steps:
+      - name: Set custom environment variables
+        run: |
+          USER_IGNORE_PATHS="${{ inputs.ignore_paths }}"
+          if [ -n "${USER_IGNORE_PATHS}" ]; then
+            IGNORE_PATHS="${IGNORE_PATHS},${USER_IGNORE_PATHS}"
+            echo "IGNORE_PATHS=${IGNORE_PATHS}" >> $GITHUB_ENV
+          fi
+
+          # Set IGNORE_NAMES if provided
+          if [ -n "${{ inputs.ignore_names }}" ]; then
+            echo "IGNORE_NAMES=${{ inputs.ignore_names }}" >> $GITHUB_ENV
+          fi
+
+          # Set MUSTACHE_IGNORE_NAMES if provided
+          if [ -n "${{ inputs.mustache_ignore_names }}" ]; then
+            echo "MUSTACHE_IGNORE_NAMES=${{ inputs.mustache_ignore_names }}" >> $GITHUB_ENV
+          fi
+
+          # Set CODECHECKER_IGNORE_PATHS if provided
+          if [ -n "${{ inputs.codechecker_ignore_paths }}" ]; then
+            echo "CODECHECKER_IGNORE_PATHS=${{ inputs.codechecker_ignore_paths }}" >> $GITHUB_ENV
+          fi
+
+          # Set PHPDOCCHECKER_IGNORE_PATHS if provided
+          if [ -n "${{ inputs.phpdocchecker_ignore_paths }}" ]; then
+            echo "PHPDOCCHECKER_IGNORE_PATHS=${{ inputs.phpdocchecker_ignore_paths }}" >> $GITHUB_ENV
+          fi
+
+          # Set PAYONE related environment variables if secrets are provided
+          if [ -n "${{ secrets.brandname }}" ]; then
+            echo "BRANDNAME=${{ secrets.brandname }}" >> $GITHUB_ENV
+          fi
+
+          if [ -n "${{ secrets.clientid }}" ]; then
+            echo "CLIENTID=${{ secrets.clientid }}" >> $GITHUB_ENV
+          fi
+
+          if [ -n "${{ secrets.payone_secret }}" ]; then
+            echo "PAYONE_SECRET=${{ secrets.payone_secret }}" >> $GITHUB_ENV
+          fi
+
+          if [ -n "${{ secrets.mpay_secret }}" ]; then
+            echo "MPAY_SECRET=${{ secrets.mpay_secret }}" >> $GITHUB_ENV
+          fi
+
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          path: plugin
+          submodules: true
+
+      - name: Setup PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          ini-values: max_input_vars=5000
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Initialise moodle-plugin-ci
+        run: |
+          rm -rf ci moodle moodledata moodle-plugin-ci-plugins
+          composer create-project -n --no-dev --prefer-dist moodlehq/moodle-plugin-ci ci ^4
+          echo $(cd ci/bin; pwd) >> $GITHUB_PATH
+          echo $(cd ci/vendor/bin; pwd) >> $GITHUB_PATH
+          sudo locale-gen en_AU.UTF-8
+          echo "NVM_DIR=$HOME/.nvm" >> $GITHUB_ENV
+
+      - name: Setup SSH for private GitHub repositories
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.ssh_private_key }}
+        run: |
+          set -e
+
+          if [ -z "$SSH_PRIVATE_KEY" ]; then
+            echo "SSH_PRIVATE_KEY secret is missing"
+            exit 1
+          fi
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          cat > ~/.ssh/config <<'EOF'
+          Host github.com
+            HostName github.com
+            User git
+            IdentityFile ~/.ssh/id_rsa
+            IdentitiesOnly yes
+            StrictHostKeyChecking accept-new
+          EOF
+          chmod 600 ~/.ssh/config
+
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+          git config --global --unset-all url."git@github.com:".insteadOf || true
+          git config --global --add url."git@github.com:".insteadOf "https://github.com/"
+          git config --global --add url."git@github.com:".insteadOf "http://github.com/"
+
+          echo "=== Git rewrite rules ==="
+          git config --global --get-all url."git@github.com:".insteadOf
+
+          echo "=== SSH test ==="
+          ssh -T git@github.com || true
+
+          echo "=== Git ls-remote test ==="
+          git ls-remote https://github.com/Wunderbyte-GmbH/moodle-local_rabbitmq.git HEAD
+
+      - name: Install dependencies
+        if: ${{ inputs.extra_plugin_runners }}
+        run: |
+          ${{ inputs.extra_plugin_runners }}
+
+      - name: Install Moodle
+        run: |
+          moodle-plugin-ci install -vvv --plugin ./plugin --db-host=127.0.0.1 --db-port=${{ matrix.database == 'mysqli' && '3307' || (matrix.database == 'mariadb' && '3306' || '5432') }}
+        env:
+          DB: ${{ matrix.database }}
+          MOODLE_BRANCH: ${{ matrix.moodle-branch }}
+
+      - name: Run phplint
+        if: ${{ always() && inputs.disable_phplint != true }}
+        run: moodle-plugin-ci phplint
+
+      - name: PHP Copy/Paste Detector
+        continue-on-error: true # This step will show errors but will not fail
+        if: ${{ always() && inputs.disable_phpcpd != true }}
+        run: moodle-plugin-ci phpcpd
+
+      - name: PHP Mess Detector
+        continue-on-error: true # This step will show errors but will not fail
+        if: ${{ always() && inputs.enable_phpmd == true }}
+        run: moodle-plugin-ci phpmd
+
+      - name: Run codechecker
+        if: ${{ always() && inputs.disable_phpcs != true }}
+        run: moodle-plugin-ci codechecker --max-warnings=${{ inputs.codechecker_max_warnings }}
+
+      - name: Moodle PHPDoc Checker
+        if: ${{ always() && inputs.disable_phpdoc != true }}
+        run: moodle-plugin-ci phpdoc
+
+      - name: Run validate
+        if: ${{ always() && inputs.disable_ci_validate != true }}
+        run: moodle-plugin-ci validate
+
+      - name: Run savepoints
+        if: ${{ always() }}
+        run: moodle-plugin-ci savepoints
+
+      - name: Run mustache Lint
+        if: ${{ always() && inputs.disable_mustache != true }}
+        run: moodle-plugin-ci mustache
+
+      - name: Run grunt
+        if: ${{ always() && inputs.disable_grunt != true }}
+        run: |
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+          cd moodle
+
+          nvm use
+          npm install
+          npm install -g grunt-cli
+
+          cd ../plugin
+
+          echo "=== Building AMD files before CI check ==="
+          grunt --gruntfile ../moodle/Gruntfile.js amd
+          echo "AMD files built successfully"
+
+          cd ..
+
+          moodle-plugin-ci grunt --max-lint-warnings 0
+        env:
+          MOODLE_BRANCH: ${{ matrix.moodle-branch }}
+
+      - name: Run phpunit
+        if: ${{ always() && inputs.disable_phpunit != true }}
+        run: moodle-plugin-ci phpunit
+
+      - name: Run behat
+        if: ${{ always() && inputs.disable_behat != true }}
+        run: moodle-plugin-ci behat --profile chrome
+
+      - name: Upload Behat Faildump
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Behat Faildump (${{ join(matrix.*, ', ') }})
+          path: ${{ github.workspace }}/moodledata/behat_dump
+          retention-days: 2
+          if-no-files-found: ignore
+
+      - name: Cleanup after job
+        if: always()
+        run: |
+          rm -rf ci moodle moodledata moodle-plugin-ci-plugins
+
   release:
     name: Release to the Moodle plugin directory
     needs: [setup, prepare_matrix]
@@ -468,7 +733,7 @@ jobs:
     # - MOODLE_XX_STABLE
     # - MOODLE_XXX_STABLE
     # - main
-    if: needs.prepare_matrix.outputs.release_required == 'true'
+    if: ${{ inputs.enable_self_hosted_ci != true && needs.prepare_matrix.outputs.release_required == 'true' }}
     runs-on: 'ubuntu-latest'
     outputs:
       has-secrets: ${{ steps.check-secrets.outputs.has-secrets }}
