@@ -470,7 +470,7 @@ jobs:
     needs: prepare_matrix
     strategy:
       fail-fast: false
-      max-parallel: 1
+      max-parallel: 3
       matrix: ${{ fromJson(needs.prepare_matrix.outputs.matrix) }}
     env:
       IGNORE_PATHS: tests/fixtures
