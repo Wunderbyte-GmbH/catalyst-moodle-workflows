@@ -8,6 +8,7 @@ Update the shared template and re-run sync instead.
 ## Repository Overview
 This repository contains a Moodle plugin developed by Wunderbyte GmbH.
 Component mapping for this repository: `plugintype_pluginname` -> `{{PLUGIN_COMPONENT}}`.
+Component mapping for this repository: `pluginname` -> `{{PLUGIN}}`.
 Moodle plugins are PHP-based extensions that follow a strict directory structure and API convention.
 Always refer to https://moodledev.io for official Moodle developer documentation.
 
