@@ -7,7 +7,8 @@ Update the shared template and re-run sync instead.
 
 ## Project Context
 This repository contains a Moodle plugin developed by Wunderbyte GmbH.
-Component mapping for this repository uses the Frankenstyle component name `plugintype_pluginname`.
+Component mapping for this repository: `plugintype_pluginname` -> `{{PLUGIN_COMPONENT}}`.
+Component mapping for this repository: `pluginname` -> `{{PLUGIN}}`.
 All code must comply with Moodle's official coding standards and plugin guidelines as documented at https://moodledev.io.
 
 ---

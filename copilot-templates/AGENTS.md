@@ -7,7 +7,7 @@ Update the shared template and re-run sync instead.
 
 ## Repository Overview
 This repository contains a Moodle plugin developed by Wunderbyte GmbH.
-Component mapping for this repository uses the Frankenstyle component name `plugintype_pluginname`.
+Component mapping for this repository: `plugintype_pluginname` -> `{{PLUGIN_COMPONENT}}`.
 Moodle plugins are PHP-based extensions that follow a strict directory structure and API convention.
 Always refer to https://moodledev.io for official Moodle developer documentation.
 
@@ -140,10 +140,14 @@ When releasing a new version, always update `version.php`:
 
 ---
 
+
 ## Language Strings
-- All user-facing strings live in `lang/en/plugintype_pluginname.php`
-- Include German strings at minimum in `lang/de/plugintype_pluginname.php` for every new or changed string.
-- Keep string identifiers identical between `en` and `de` language packs.
+- All user-facing strings live in:
+  - For activity modules (`mod`): `lang/en/pluginname.php` and `lang/de/pluginname.php`
+  - For all other plugin types: `lang/en/plugintype_pluginname.php` and `lang/de/plugintype_pluginname.php`
+- The component name used in code always follows the Frankenstyle format:
+  - Example: `get_string('pluginname', 'plugintype_pluginname')`
+- Keep language string keys synchronized between `lang/en/` and `lang/de/`.
 - Never hardcode English text in PHP, JS, or Mustache — always use:
   - PHP: `get_string('mystring', 'plugintype_pluginname')`
   - JS: `core/str` AMD module
