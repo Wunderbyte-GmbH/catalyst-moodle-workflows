@@ -7,7 +7,7 @@ Update the shared template and re-run sync instead.
 
 ## Project Context
 This repository contains a Moodle plugin developed by Wunderbyte GmbH.
-Component mapping for this repository: `plugintype_pluginname` -> `{{PLUGIN_COMPONENT}}`.
+Component mapping for this repository uses the Frankenstyle component name `plugintype_pluginname`.
 All code must comply with Moodle's official coding standards and plugin guidelines as documented at https://moodledev.io.
 
 ---
@@ -62,11 +62,17 @@ Every PHP file must include this exact file-level PHPDoc block at the top (after
 - Use `$OUTPUT->header()` / `$OUTPUT->footer()` for page rendering.
 - Always call `require_login()` at the top of pages that require authentication.
 - Use `require_capability()` or `has_capability()` to enforce access control.
-- Use `get_string()` for all user-facing strings — never hardcode English text in PHP (use `lang/en/plugintype_pluginname.php`).
-- Add and maintain German strings in `lang/de/plugintype_pluginname.php` for every new or changed user-facing string.
-- Keep language string keys synchronized between `lang/en/` and `lang/de/`.
 - Use Moodle's form API (`moodleform`) for all user input forms.
 - Use `$PAGE->set_*` methods to configure page properties.
+
+## Language Strings
+
+- All user-facing strings live in:
+  - For activity modules (`mod`): `lang/en/pluginname.php` and `lang/de/pluginname.php`
+  - For all other plugin types: `lang/en/plugintype_pluginname.php` and `lang/de/plugintype_pluginname.php`
+- The component name used in code always follows the Frankenstyle format:
+  - Example: `get_string('pluginname', 'plugintype_pluginname')`
+- Keep language string keys synchronized between `lang/en/` and `lang/de/`.
 
 ---
 
