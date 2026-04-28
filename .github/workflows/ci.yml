@@ -115,7 +115,7 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.moodle_branches }}
       cancel-in-progress: true
-    runs-on: 'ubuntu-latest'
+    runs-on: ${{ inputs.enable_self_hosted_ci && fromJSON('["self-hosted","self-hosted-ci"]') || 'ubuntu-latest' }}
     outputs:
       matrix: ${{ steps.parse-version.outputs.matrix }}
       component: ${{ steps.parse-version.outputs.component }}
