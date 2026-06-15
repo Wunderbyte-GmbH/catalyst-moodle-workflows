@@ -164,7 +164,7 @@ jobs:
           since_last_remote_commit: "true"
 
       - name: Install PHP
-        uses: shivammathur/setup-php@v2.35.4
+        uses: shivammathur/setup-php@v2
         with:
           php-version: '8.1'
           coverage: none
@@ -312,7 +312,7 @@ jobs:
           node-version: ${{ matrix.node }}
 
       - name: Setup PHP ${{ matrix.php }}
-        uses: shivammathur/setup-php@v2.35.4
+        uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           ini-values: max_input_vars=5000
