@@ -140,6 +140,7 @@ jobs:
           ) }}
 
           echo "publishable=$publishable" >> $GITHUB_OUTPUT
+
       - name: Check out CI code
         uses: actions/checkout@v5
         with:
@@ -147,29 +148,30 @@ jobs:
           repository: Wunderbyte-GmbH/catalyst-moodle-workflows
           ref: ${{ inputs.internal_workflow_branch }}
           token: ${{ github.token }}
+
       - name: Check out plugin code
         uses: actions/checkout@v5
         with:
-          # Needed for 'changed-files' actions (alternatively could be a fixed
-          # large number but may cause issues if limited).
           fetch-depth: 20
           path: plugin
           submodules: true
+
       - name: Check if release is required (version.php changes)
         if: contains(github.event_name, 'push') && steps.check-branch.outputs.publishable == 'true'
-        uses: tj-actions/changed-files@2f7c5bfce28377bc069a65ba478de0a74aa0ca32 # v46.0.1
+        uses: tj-actions/changed-files@2f7c5bfce28377bc069a65ba478de0a74aa0ca32
         id: check-version
         with:
           path: plugin
           files: |
             version.php
           since_last_remote_commit: "true"
+
       - name: Install PHP
-        uses: shivammathur/setup-php@9e72090525849c5e82e596468b86eb55e9cc5401 # v2.32.0
+        uses: shivammathur/setup-php@9e72090525849c5e82e596468b86eb55e9cc5401
         with:
           php-version: '8.1'
           coverage: none
-          # extensions: yaml # FYI: makes the workflow very slow
+
       - name: Determine test requirements and plugin info
         id: parse-version
         run: |
@@ -206,6 +208,7 @@ jobs:
           --health-retries 3
         ports:
           - 5432:5432
+
       mariadb:
         image: "mariadb:${{ matrix.mariadb-ver }}"
         env:
@@ -220,6 +223,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 3
+
       mysql:
         image: "mysql:${{ matrix.mysql-ver }}"
         env:
@@ -231,6 +235,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 3
+
     steps:
       - name: Set custom environment variables
         run: |
@@ -240,27 +245,22 @@ jobs:
             echo "IGNORE_PATHS=${IGNORE_PATHS}" >> $GITHUB_ENV
           fi
 
-          # Set IGNORE_NAMES if provided
           if [ -n "${{ inputs.ignore_names }}" ]; then
             echo "IGNORE_NAMES=${{ inputs.ignore_names }}" >> $GITHUB_ENV
           fi
 
-          # Set MUSTACHE_IGNORE_NAMES if provided
           if [ -n "${{ inputs.mustache_ignore_names }}" ]; then
             echo "MUSTACHE_IGNORE_NAMES=${{ inputs.mustache_ignore_names }}" >> $GITHUB_ENV
           fi
 
-          # Set CODECHECKER_IGNORE_PATHS if provided
           if [ -n "${{ inputs.codechecker_ignore_paths }}" ]; then
             echo "CODECHECKER_IGNORE_PATHS=${{ inputs.codechecker_ignore_paths }}" >> $GITHUB_ENV
           fi
 
-          # Set PHPDOCCHECKER_IGNORE_PATHS if provided
           if [ -n "${{ inputs.phpdocchecker_ignore_paths }}" ]; then
             echo "PHPDOCCHECKER_IGNORE_PATHS=${{ inputs.phpdocchecker_ignore_paths }}" >> $GITHUB_ENV
           fi
 
-          # Set PAYONE related environment variables if secrets are provided
           if [ -n "${{ secrets.brandname }}" ]; then
             echo "BRANDNAME=${{ secrets.brandname }}" >> $GITHUB_ENV
           fi
@@ -280,25 +280,14 @@ jobs:
       - name: Setup SSH key for private repositories
         if: ${{ env.SSH_PRIVATE_KEY != '' }}
         run: |
-          # Only run if SSH_PRIVATE_KEY is provided
           if [ -n "$SSH_PRIVATE_KEY" ]; then
-            # Create SSH directory
             mkdir -p ~/.ssh
-
-            # Add SSH private key
             echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
             chmod 600 ~/.ssh/id_rsa
-
-            # Add GitHub to known hosts
             ssh-keyscan github.com >> ~/.ssh/known_hosts
-
-            # Start SSH agent and add key
             eval "$(ssh-agent -s)"
             ssh-add ~/.ssh/id_rsa
-
-            # Configure git to use SSH for GitHub
             git config --global url."git@github.com:".insteadOf "https://github.com/"
-
             echo "SSH key configured successfully"
           else
             echo "No SSH key provided, skipping SSH setup"
@@ -319,13 +308,14 @@ jobs:
         with:
           path: plugin
           submodules: true
+
       - name: Install node  ${{ matrix.node }}
         uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node }}
 
       - name: Setup PHP ${{ matrix.php }}
-        uses: shivammathur/setup-php@9e72090525849c5e82e596468b86eb55e9cc5401 # v2.32.0
+        uses: shivammathur/setup-php@9e72090525849c5e82e596468b86eb55e9cc5401
         with:
           php-version: ${{ matrix.php }}
           ini-values: max_input_vars=5000
@@ -338,23 +328,18 @@ jobs:
         run: |
           echo "COMPOSER_VERSION=--1" >> $GITHUB_OUTPUT
 
-
       - name: Update Composer
         if: ${{ matrix.moodle-branch == 'MOODLE_32_STABLE' || matrix.moodle-branch == 'MOODLE_33_STABLE' }}
         run: |
           composer self-update ${{ steps.install-composer1.outputs.COMPOSER_VERSION }}
 
-
       - name: Initialise moodle-plugin-ci
         run: |
-          # Initialise moodle-plugin-ci (install via composer)
           echo "::group::Initialise moodle-plugin-ci"
 
           composer create-project -n --no-dev --prefer-dist moodlehq/moodle-plugin-ci m-ci ^4
-          # Add dirs to $PATH
           echo $(cd m-ci/bin; pwd) >> $GITHUB_PATH
           echo $(cd m-ci/vendor/bin; pwd) >> $GITHUB_PATH
-          # PHPUnit depends on en_AU.UTF-8 locale
           sudo locale-gen en_AU.UTF-8
 
           echo "::endgroup::"
@@ -362,7 +347,6 @@ jobs:
       - name: Install dependencies
         if: ${{ inputs.extra_plugin_runners }}
         run: |
-          # Install dependencies
           echo "::group::Install dependencies"
 
           ${{ inputs.extra_plugin_runners }}
@@ -371,7 +355,6 @@ jobs:
 
       - name: Install Moodle
         run: |
-          # Install moodle commands
           echo "::group::Moodle install output"
 
           moodle-plugin-ci install -vvv --plugin ./plugin --db-host=127.0.0.1 --db-port=${{ matrix.database == 'mysqli' && '3307' || (matrix.database == 'mariadb' && '3306' || '5432') }}
@@ -383,7 +366,6 @@ jobs:
 
       - name: Install Core Patches
         if: ${{ always() }}
-        # We should attempt to install a patch, and pass if there isnt one for the branch.
         run: |
           git config --global user.email "test@test.com"
           git config --global user.name "Test"
@@ -392,7 +374,6 @@ jobs:
       - name: Run custom workarounds
         if: ${{ inputs.workarounds }}
         run: |
-          # Run custom workarounds
           echo "::group::Running custom workarounds"
 
           ${{ inputs.workarounds }}
@@ -404,12 +385,12 @@ jobs:
         run: moodle-plugin-ci phplint
 
       - name: PHP Copy/Paste Detector
-        continue-on-error: true # This step will show errors but will not fail
+        continue-on-error: true
         if: ${{ always() && inputs.disable_phpcpd != true }}
         run: moodle-plugin-ci phpcpd
 
       - name: PHP Mess Detector
-        continue-on-error: true # This step will show errors but will not fail
+        continue-on-error: true
         if: ${{ always() && inputs.enable_phpmd == true }}
         run: moodle-plugin-ci phpmd
 
@@ -478,44 +459,47 @@ jobs:
       group: self-hosted-${{ github.workflow }}-${{ github.ref }}-${{ matrix.moodle-branch }}-${{ matrix.database }}-${{ matrix.php }}-${{ needs.prepare_matrix.outputs.component }}
       cancel-in-progress: true
     runs-on: [self-hosted, self-hosted-ci]
+
     services:
       postgres:
         image: "postgres:${{ matrix.pgsql-ver }}"
         env:
-          POSTGRES_USER: 'postgres'
-          POSTGRES_HOST_AUTH_METHOD: 'trust'
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 3
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
         ports:
-          - 5432:5432
+          - 127.0.0.1:5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
       mariadb:
         image: "mariadb:${{ matrix.mariadb-ver }}"
         env:
-          MYSQL_USER: 'root'
           MYSQL_ALLOW_EMPTY_PASSWORD: "true"
           MYSQL_CHARACTER_SET_SERVER: "utf8mb4"
           MYSQL_COLLATION_SERVER: "utf8mb4_unicode_ci"
         ports:
-          - 3306:3306
+          - 127.0.0.1:3306:3306
         options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval 10s
+          --health-cmd "mysqladmin ping"
+          --health-interval 5s
           --health-timeout 5s
-          --health-retries 3
+          --health-retries 20
+
       mysql:
         image: "mysql:${{ matrix.mysql-ver }}"
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: "true"
         ports:
-          - 3307:3306
+          - 127.0.0.1:3307:3306
         options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval 10s
+          --health-cmd "mysqladmin ping"
+          --health-interval 5s
           --health-timeout 5s
-          --health-retries 3
+          --health-retries 20
+
     steps:
       - name: Set custom environment variables
         run: |
@@ -525,27 +509,22 @@ jobs:
             echo "IGNORE_PATHS=${IGNORE_PATHS}" >> $GITHUB_ENV
           fi
 
-          # Set IGNORE_NAMES if provided
           if [ -n "${{ inputs.ignore_names }}" ]; then
             echo "IGNORE_NAMES=${{ inputs.ignore_names }}" >> $GITHUB_ENV
           fi
 
-          # Set MUSTACHE_IGNORE_NAMES if provided
           if [ -n "${{ inputs.mustache_ignore_names }}" ]; then
             echo "MUSTACHE_IGNORE_NAMES=${{ inputs.mustache_ignore_names }}" >> $GITHUB_ENV
           fi
 
-          # Set CODECHECKER_IGNORE_PATHS if provided
           if [ -n "${{ inputs.codechecker_ignore_paths }}" ]; then
             echo "CODECHECKER_IGNORE_PATHS=${{ inputs.codechecker_ignore_paths }}" >> $GITHUB_ENV
           fi
 
-          # Set PHPDOCCHECKER_IGNORE_PATHS if provided
           if [ -n "${{ inputs.phpdocchecker_ignore_paths }}" ]; then
             echo "PHPDOCCHECKER_IGNORE_PATHS=${{ inputs.phpdocchecker_ignore_paths }}" >> $GITHUB_ENV
           fi
 
-          # Set PAYONE related environment variables if secrets are provided
           if [ -n "${{ secrets.brandname }}" ]; then
             echo "BRANDNAME=${{ secrets.brandname }}" >> $GITHUB_ENV
           fi
@@ -640,7 +619,36 @@ jobs:
 
       - name: Install Moodle
         run: |
-          moodle-plugin-ci install -vvv --plugin ./plugin --db-host=127.0.0.1 --db-port=${{ matrix.database == 'mysqli' && '3307' || (matrix.database == 'mariadb' && '3306' || '5432') }}
+          set -e
+
+          if [ "$DB" = "pgsql" ]; then
+            moodle-plugin-ci install -vvv \
+              --plugin ./plugin \
+              --db-host=127.0.0.1 \
+              --db-port=5432 \
+              --db-user=postgres \
+              --db-pass=postgres
+
+          elif [ "$DB" = "mariadb" ]; then
+            moodle-plugin-ci install -vvv \
+              --plugin ./plugin \
+              --db-host=127.0.0.1 \
+              --db-port=3306 \
+              --db-user=root \
+              --db-pass=""
+
+          elif [ "$DB" = "mysqli" ] || [ "$DB" = "mysql" ]; then
+            moodle-plugin-ci install -vvv \
+              --plugin ./plugin \
+              --db-host=127.0.0.1 \
+              --db-port=3307 \
+              --db-user=root \
+              --db-pass=""
+
+          else
+            echo "Unknown DB: $DB"
+            exit 1
+          fi
         env:
           DB: ${{ matrix.database }}
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
@@ -650,12 +658,12 @@ jobs:
         run: moodle-plugin-ci phplint
 
       - name: PHP Copy/Paste Detector
-        continue-on-error: true # This step will show errors but will not fail
+        continue-on-error: true
         if: ${{ always() && inputs.disable_phpcpd != true }}
         run: moodle-plugin-ci phpcpd
 
       - name: PHP Mess Detector
-        continue-on-error: true # This step will show errors but will not fail
+        continue-on-error: true
         if: ${{ always() && inputs.enable_phpmd == true }}
         run: moodle-plugin-ci phpmd
 
