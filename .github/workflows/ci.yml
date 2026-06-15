@@ -141,14 +141,14 @@ jobs:
 
           echo "publishable=$publishable" >> $GITHUB_OUTPUT
       - name: Check out CI code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: ci
           repository: Wunderbyte-GmbH/catalyst-moodle-workflows
           ref: ${{ inputs.internal_workflow_branch }}
           token: ${{ github.token }}
       - name: Check out plugin code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           # Needed for 'changed-files' actions (alternatively could be a fixed
           # large number but may cause issues if limited).
@@ -307,7 +307,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.ssh_private_key }}
 
       - name: Check out CI code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: ci
           repository: Wunderbyte-GmbH/catalyst-moodle-workflows
@@ -315,12 +315,12 @@ jobs:
           token: ${{ github.token }}
 
       - name: Check out repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: plugin
           submodules: true
       - name: Install node  ${{ matrix.node }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node }}
 
@@ -448,7 +448,7 @@ jobs:
 
       - name: Upload Behat Faildump
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: Behat Faildump (${{ join(matrix.*, ', ') }})
           path: ${{ github.workspace }}/moodledata/behat_dump
@@ -563,7 +563,7 @@ jobs:
           fi
 
       - name: Check out repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: plugin
           submodules: true
@@ -577,7 +577,7 @@ jobs:
           coverage: none
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20
 
@@ -713,7 +713,7 @@ jobs:
 
       - name: Upload Behat Faildump
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: Behat Faildump (${{ join(matrix.*, ', ') }})
           path: ${{ github.workspace }}/moodledata/behat_dump
@@ -747,7 +747,7 @@ jobs:
         run: echo "has-secrets=true" >> $GITHUB_OUTPUT
 
       - name: Check out CI code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: ci
           repository: Wunderbyte-GmbH/catalyst-moodle-workflows
