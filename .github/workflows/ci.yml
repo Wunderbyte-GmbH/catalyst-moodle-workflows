@@ -563,29 +563,37 @@ jobs:
 
       - name: Setup SSH for private GitHub repositories
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.ssh_private_key }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           set -e
-
-          if [ -z "$SSH_PRIVATE_KEY" ]; then
-            echo "SSH_PRIVATE_KEY secret is missing"
-            exit 1
-          fi
 
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
 
-          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          if [ -f ~/.ssh/id_ed25519 ]; then
+            echo "Using existing ~/.ssh/id_ed25519"
+          else
+            if [ -z "$SSH_PRIVATE_KEY" ]; then
+              echo "SSH_PRIVATE_KEY secret is missing and ~/.ssh/id_ed25519 does not exist"
+              exit 1
+            fi
+
+            printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+            chmod 600 ~/.ssh/id_ed25519
+            echo "Created ~/.ssh/id_ed25519 from secret"
+          fi
+
+          ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null
 
           cat > ~/.ssh/config <<'EOF'
           Host github.com
             HostName github.com
             User git
-            IdentityFile ~/.ssh/id_rsa
+            IdentityFile ~/.ssh/id_ed25519
             IdentitiesOnly yes
             StrictHostKeyChecking accept-new
           EOF
+
           chmod 600 ~/.ssh/config
 
           ssh-keyscan github.com >> ~/.ssh/known_hosts
@@ -595,14 +603,12 @@ jobs:
           git config --global --add url."git@github.com:".insteadOf "https://github.com/"
           git config --global --add url."git@github.com:".insteadOf "http://github.com/"
 
-          echo "=== Git rewrite rules ==="
-          git config --global --get-all url."git@github.com:".insteadOf
-
           echo "=== SSH test ==="
           ssh -T git@github.com || true
 
           echo "=== Git ls-remote test ==="
-          git ls-remote https://github.com/Wunderbyte-GmbH/moodle-local_rabbitmq.git HEAD
+          git ls-remote git@github.com:Wunderbyte-GmbH/moodle-local_rabbitmq.git HEAD
+
 
       - name: Install dependencies
         if: ${{ inputs.extra_plugin_runners }}
