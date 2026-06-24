@@ -138,6 +138,41 @@ jobs:
 
           echo "publishable=$publishable" >> $GITHUB_OUTPUT
 
+      - name: Fix self-hosted SSH config
+        if: ${{ inputs.enable_self_hosted_ci == true }}
+        run: |
+          set -e
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          if [ ! -f ~/.ssh/id_ed25519 ]; then
+            echo "~/.ssh/id_ed25519 does not exist"
+            exit 1
+          fi
+
+          ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null
+
+          # Remove any old/broken RSA key that may interfere.
+          rm -f ~/.ssh/id_rsa ~/.ssh/id_rsa.pub
+
+          cat > ~/.ssh/config <<'EOF'
+          Host github.com
+            HostName github.com
+            User git
+            IdentityFile ~/.ssh/id_ed25519
+            IdentitiesOnly yes
+            StrictHostKeyChecking accept-new
+          EOF
+
+          chmod 600 ~/.ssh/config
+
+          git config --global --unset-all url."git@github.com:".insteadOf || true
+          git config --global --add url."git@github.com:".insteadOf "https://github.com/"
+          git config --global --add url."git@github.com:".insteadOf "http://github.com/"
+
+          ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null
+
       - name: Check out CI code
         uses: actions/checkout@v5
         with:
