@@ -174,7 +174,7 @@ jobs:
           ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null
 
       - name: Check out CI code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: ci
           repository: Wunderbyte-GmbH/catalyst-moodle-workflows
@@ -182,7 +182,7 @@ jobs:
           token: ${{ github.token }}
 
       - name: Check out plugin code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 20
           path: plugin
@@ -328,7 +328,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.ssh_private_key }}
 
       - name: Check out CI code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: ci
           repository: Wunderbyte-GmbH/catalyst-moodle-workflows
@@ -336,7 +336,7 @@ jobs:
           token: ${{ github.token }}
 
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: plugin
           submodules: true
@@ -456,7 +456,7 @@ jobs:
 
       - name: Upload Behat Faildump
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: Behat Faildump (${{ join(matrix.*, ', ') }})
           path: ${{ github.workspace }}/moodledata/behat_dump
@@ -569,7 +569,7 @@ jobs:
           fi
 
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: plugin
           submodules: true
@@ -749,7 +749,7 @@ jobs:
 
       - name: Upload Behat Faildump
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: Behat Faildump (${{ join(matrix.*, ', ') }})
           path: ${{ github.workspace }}/moodledata/behat_dump
@@ -783,7 +783,7 @@ jobs:
         run: echo "has-secrets=true" >> $GITHUB_OUTPUT
 
       - name: Check out CI code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: ci
           repository: Wunderbyte-GmbH/catalyst-moodle-workflows
