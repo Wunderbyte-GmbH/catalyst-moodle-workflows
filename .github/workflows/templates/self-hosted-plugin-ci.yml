@@ -10,6 +10,7 @@ jobs:
       disable_release: true
       enable_phpmd: true
       codechecker_max_warnings: 0
+      # database: "mariadb"  # Optional: mariadb, pgsql, or mysqli. If omitted, test all databases defined in the matrix
 #      extra_plugin_runners: |
 #        moodle-plugin-ci add-plugin --branch main Wunderbyte-GmbH/moodle-local_rabbitmq
 #        moodle-plugin-ci add-plugin --branch main Wunderbyte-GmbH/moodle-local_handoutpdf

@@ -63,9 +63,21 @@ $matrix = Yaml::parse($matrixYaml);
 $updates = json_decode(file_get_contents('https://download.moodle.org/api/1.3/updates.php?format=json&version=0.0&branch=3.8'), true);
 $updates = $updates['updates']['core'] ?? [];
 
-$preparedMatrix = array_filter($matrix['include'], function($entry) use($plugin, $updates, $matrix) {
+$database = strtolower(trim($_SERVER['database'] ?? ''));
+$allowedDatabases = ['mariadb', 'pgsql', 'mysqli'];
+if ($database !== '' && !in_array($database, $allowedDatabases, true)) {
+    fwrite(STDERR, "Invalid database '$database'. Allowed values: mariadb, pgsql, mysqli.\n");
+    exit(1);
+}
+
+$preparedMatrix = array_filter($matrix['include'], function($entry) use($plugin, $updates, $matrix, $database) {
 
     if (!isset($entry)) {
+        return false;
+    }
+
+    // If a database was selected by the caller, only keep matrix rows using it.
+    if ($database !== '' && ($entry['database'] ?? '') !== $database) {
         return false;
     }
 
