@@ -171,8 +171,6 @@ jobs:
           chmod 600 ~/.ssh/config
 
           git config --global --unset-all url."git@github.com:".insteadOf || true
-          git config --global --add url."git@github.com:".insteadOf "https://github.com/"
-          git config --global --add url."git@github.com:".insteadOf "http://github.com/"
 
           ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null
 
@@ -329,7 +327,7 @@ jobs:
             echo "No SSH key provided, skipping SSH setup"
           fi
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.ssh_private_key }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Check out CI code
         uses: actions/checkout@v6
@@ -663,6 +661,12 @@ jobs:
 
       - name: Install dependencies
         if: ${{ inputs.extra_plugin_runners }}
+        env:
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: 'url.git@github.com:.insteadOf'
+          GIT_CONFIG_VALUE_0: 'https://github.com/'
+          GIT_CONFIG_KEY_1: 'url.git@github.com:.insteadOf'
+          GIT_CONFIG_VALUE_1: 'http://github.com/'
         run: |
           ${{ inputs.extra_plugin_runners }}
 
@@ -713,6 +717,11 @@ jobs:
           NPM_CONFIG_FETCH_RETRY_MINTIMEOUT: '20000'
           NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT: '120000'
           NPM_CONFIG_PREFER_OFFLINE: 'true'
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: 'url.git@github.com:.insteadOf'
+          GIT_CONFIG_VALUE_0: 'https://github.com/'
+          GIT_CONFIG_KEY_1: 'url.git@github.com:.insteadOf'
+          GIT_CONFIG_VALUE_1: 'http://github.com/'
 
       - name: Run phplint
         if: ${{ always() && inputs.disable_phplint != true }}
