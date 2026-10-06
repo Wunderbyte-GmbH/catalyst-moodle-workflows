@@ -327,7 +327,7 @@ jobs:
             echo "No SSH key provided, skipping SSH setup"
           fi
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_PRIVATE_KEY: ${{ secrets.ssh_private_key }}
 
       - name: Check out CI code
         uses: actions/checkout@v6
@@ -612,7 +612,7 @@ jobs:
 
       - name: Setup SSH for private GitHub repositories
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_PRIVATE_KEY: ${{ secrets.ssh_private_key }}
         run: |
           set -e
 
@@ -649,8 +649,6 @@ jobs:
           chmod 644 ~/.ssh/known_hosts
 
           git config --global --unset-all url."git@github.com:".insteadOf || true
-          git config --global --add url."git@github.com:".insteadOf "https://github.com/"
-          git config --global --add url."git@github.com:".insteadOf "http://github.com/"
 
           echo "=== SSH test ==="
           ssh -T git@github.com || true
