@@ -390,7 +390,7 @@ jobs:
           echo "::endgroup::"
 
       - name: Cache npm downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.npm
           key: npm-v1-${{ runner.os }}-node${{ matrix.node }}-${{ matrix.moodle-branch }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -601,7 +601,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Initialise moodle-plugin-ci
         run: |
@@ -667,12 +667,12 @@ jobs:
           ${{ inputs.extra_plugin_runners }}
 
       - name: Cache npm downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.npm
-          key: npm-v1-${{ runner.os }}-node20-${{ matrix.moodle-branch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: npm-v1-${{ runner.os }}-node22-${{ matrix.moodle-branch }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            npm-v1-${{ runner.os }}-node20-${{ matrix.moodle-branch }}-
+            npm-v1-${{ runner.os }}-node22-${{ matrix.moodle-branch }}-
 
       - name: Install Moodle
         run: |
