@@ -389,6 +389,14 @@ jobs:
 
           echo "::endgroup::"
 
+      - name: Cache npm downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-v1-${{ runner.os }}-node${{ matrix.node }}-${{ matrix.moodle-branch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            npm-v1-${{ runner.os }}-node${{ matrix.node }}-${{ matrix.moodle-branch }}-
+
       - name: Install Moodle
         run: |
           echo "::group::Moodle install output"
@@ -399,6 +407,10 @@ jobs:
         env:
           DB: ${{ matrix.database }}
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
+          NPM_CONFIG_FETCH_RETRIES: '6'
+          NPM_CONFIG_FETCH_RETRY_MINTIMEOUT: '20000'
+          NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT: '120000'
+          NPM_CONFIG_PREFER_OFFLINE: 'true'
 
       - name: Install Core Patches
         if: ${{ always() }}
@@ -654,6 +666,14 @@ jobs:
         run: |
           ${{ inputs.extra_plugin_runners }}
 
+      - name: Cache npm downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-v1-${{ runner.os }}-node20-${{ matrix.moodle-branch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            npm-v1-${{ runner.os }}-node20-${{ matrix.moodle-branch }}-
+
       - name: Install Moodle
         run: |
           set -e
@@ -689,6 +709,10 @@ jobs:
         env:
           DB: ${{ matrix.database }}
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
+          NPM_CONFIG_FETCH_RETRIES: '6'
+          NPM_CONFIG_FETCH_RETRY_MINTIMEOUT: '20000'
+          NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT: '120000'
+          NPM_CONFIG_PREFER_OFFLINE: 'true'
 
       - name: Run phplint
         if: ${{ always() && inputs.disable_phplint != true }}
