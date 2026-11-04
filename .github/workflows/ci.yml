@@ -641,22 +641,50 @@ jobs:
             User git
             IdentityFile ~/.ssh/id_ed25519
             IdentitiesOnly yes
+            IdentityAgent none
             StrictHostKeyChecking accept-new
           EOF
 
           chmod 600 ~/.ssh/config
 
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          ssh-keygen -F github.com > /dev/null 2>&1 || ssh-keyscan github.com >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
           git config --global --unset-all url."git@github.com:".insteadOf || true
 
           echo "=== SSH test ==="
-          ssh -T git@github.com || true
+          if ! ssh -T -o BatchMode=yes git@github.com; then
+            echo "=== SSH authentication diagnostic ==="
+            ssh -vvv -T -o BatchMode=yes git@github.com 2>&1 | \
+              grep -E 'Offering public key|Server accepts key|Authenticated to|Permission denied|sign_and_send_pubkey|identity file|Authentications that can continue' || true
+          fi
 
           echo "=== Git ls-remote test ==="
-          git ls-remote git@github.com:Wunderbyte-GmbH/moodle-local_rabbitmq.git HEAD
+          if ! git ls-remote git@github.com:Wunderbyte-GmbH/moodle-local_rabbitmq.git HEAD; then
+            echo "=== Git SSH diagnostic ==="
 
+            echo "Runner: ${RUNNER_NAME:-unknown}"
+            echo "User: $(whoami)"
+            echo "HOME: $HOME"
+            echo "SSH_AUTH_SOCK set: $([ -n "${SSH_AUTH_SOCK:-}" ] && echo yes || echo no)"
+
+            echo "=== SSH key fingerprint ==="
+            ssh-keygen -lf ~/.ssh/id_ed25519.pub 2>/dev/null || \
+              ssh-keygen -y -f ~/.ssh/id_ed25519 | ssh-keygen -lf -
+
+            echo "=== Effective SSH configuration ==="
+            ssh -G github.com | \
+              grep -E '^(hostname|user|identityfile|identitiesonly|identityagent) '
+
+            echo "=== Git SSH debug ==="
+            GIT_TRACE=1 \
+            GIT_SSH_COMMAND="ssh -vv -o BatchMode=yes" \
+              git ls-remote git@github.com:Wunderbyte-GmbH/moodle-local_rabbitmq.git HEAD \
+              2>&1 | grep -E \
+              'run_command|Offering public key|Server accepts key|Authenticated to|Permission denied|sign_and_send_pubkey|fatal:|ERROR:|HEAD' || true
+
+            exit 1
+          fi
 
       - name: Install dependencies
         if: ${{ inputs.extra_plugin_runners }}
